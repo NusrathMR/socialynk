@@ -6,6 +6,7 @@ import Sidebar from "../sideBar/sidebar.jsx"
 import TopBar from "../topBar/topBar.jsx"
 import AIAssistantModal from "../aiAssistant/aiAssistant.jsx"
 import ScheduleModal from "../scheduleModel/scheduleModel.jsx"
+import RecentPostsDropdown from "./recentPostsDropdown.jsx"
 
 // The five content type cards. "id" must match the values the backend accepts.
 const CONTENT_TYPES = [
@@ -52,10 +53,16 @@ function CreatePage() {
   }))
   const savingRef = useRef(false)
   const schedulingRef = useRef(false)
+  const autosaveTimeoutRef = useRef(null)
+  const previousPostInfoTimeoutRef = useRef(null)
+  const draftLoadGenerationRef = useRef(0)
+  const imageUploadGenerationRef = useRef(0)
+  const forceAutosaveRef = useRef(false)
 
   // Save feedback
   const [saveStatus, setSaveStatus] = useState("idle")   // idle, saving, saved, error
   const [errorMessage, setErrorMessage] = useState("")
+  const [previousPostInfo, setPreviousPostInfo] = useState("")
 
   // Recent Drafts panel
   const [drafts, setDrafts] = useState([])
@@ -92,9 +99,15 @@ function CreatePage() {
   useEffect(() => {
     if (!draftId) return
 
+    const generation = draftLoadGenerationRef.current + 1
+    draftLoadGenerationRef.current = generation
+    let active = true
+
     const openDraft = async () => {
       try {
         const response = await api.get(`/posts/${draftId}`)
+        if (!active || generation !== draftLoadGenerationRef.current) return
+
         const post = response.data.post
         const postMedia = post.media || []
         lastSavedRef.current = JSON.stringify({
@@ -108,14 +121,19 @@ function CreatePage() {
         setImages(postMedia)
         setSaveStatus("idle")
         setErrorMessage("")
-      } catch (error) {
+      } catch {
+        if (!active || generation !== draftLoadGenerationRef.current) return
+
         setErrorMessage("Draft not found...")
         setSearchParams({})          // remove the bad id from the address
       }
     }
 
     openDraft()
-  }, [draftId])
+    return () => {
+      active = false
+    }
+  }, [draftId, setSearchParams])
 
   // ---------- Autosave changed content ----------
   useEffect(() => {
@@ -123,10 +141,23 @@ function CreatePage() {
     if (current === lastSavedRef.current) return
     if (saveStatus === "saving") return
     if (saveStatus === "error") return
-    if (!postId && caption.trim().length < 3 && images.length === 0) return
+    if (
+      !postId &&
+      caption.trim().length < 3 &&
+      images.length === 0 &&
+      !forceAutosaveRef.current
+    ) return
 
-    const timeout = setTimeout(() => saveDraft(), 1500)
-    return () => clearTimeout(timeout)
+    const timeout = setTimeout(() => {
+      autosaveTimeoutRef.current = null
+      forceAutosaveRef.current = false
+      saveDraft()
+    }, 1500)
+    autosaveTimeoutRef.current = timeout
+    return () => {
+      clearTimeout(timeout)
+      if (autosaveTimeoutRef.current === timeout) autosaveTimeoutRef.current = null
+    }
   }, [caption, contentType, images, saveStatus, postId])
 
   // ---------- Save (create the first time, update afterwards) ----------
@@ -170,6 +201,13 @@ function CreatePage() {
 
   // ---------- Start a blank draft ----------
   const handleNewDraft = () => {
+    draftLoadGenerationRef.current += 1
+    imageUploadGenerationRef.current += 1
+    forceAutosaveRef.current = false
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current)
+      autosaveTimeoutRef.current = null
+    }
     lastSavedRef.current = JSON.stringify({
       caption: "",
       contentType: "social_post",
@@ -179,10 +217,52 @@ function CreatePage() {
     setCaption("")
     setContentType("social_post")
     setImages([])
+    setUploading(false)
+    setUploadError("")
     setSaveStatus("idle")
     setErrorMessage("")
     setSearchParams({})
   }
+
+  const handleUsePreviousPost = (previousCaption) => {
+    if (savingRef.current || saveStatus === "saving") return
+
+    draftLoadGenerationRef.current += 1
+    imageUploadGenerationRef.current += 1
+    forceAutosaveRef.current = true
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current)
+      autosaveTimeoutRef.current = null
+    }
+
+    lastSavedRef.current = JSON.stringify({
+      caption: "",
+      contentType,
+      media: [],
+    })
+    setPostId(null)
+    setImages([])
+    setUploading(false)
+    setUploadError("")
+    setCaption(previousCaption)
+    setSaveStatus("idle")
+    setErrorMessage("")
+    setSearchParams({})
+    setPreviousPostInfo("Started a new draft from a previous post. Your earlier draft is saved in Recent Drafts.")
+
+    if (previousPostInfoTimeoutRef.current) {
+      clearTimeout(previousPostInfoTimeoutRef.current)
+    }
+    previousPostInfoTimeoutRef.current = setTimeout(() => {
+      setPreviousPostInfo("")
+      previousPostInfoTimeoutRef.current = null
+    }, 4000)
+  }
+
+  useEffect(() => () => {
+    if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current)
+    if (previousPostInfoTimeoutRef.current) clearTimeout(previousPostInfoTimeoutRef.current)
+  }, [])
 
   // ---------- Delete a draft from the Recent Drafts panel ----------
   const handleDelete = async (e, id) => {
@@ -262,16 +342,23 @@ function CreatePage() {
     const file = e.target.files[0]
     if (!file) return
 
+    const generation = imageUploadGenerationRef.current
     setUploadError("")
     setUploading(true)
 
     try {
       const media = await uploadImage(file)
-      setImages((prev) => [...prev, media])
+      if (generation === imageUploadGenerationRef.current) {
+        setImages((prev) => [...prev, media])
+      }
     } catch (error) {
-      setUploadError(error.message)
+      if (generation === imageUploadGenerationRef.current) {
+        setUploadError(error.message)
+      }
     } finally {
-      setUploading(false)
+      if (generation === imageUploadGenerationRef.current) {
+        setUploading(false)
+      }
       e.target.value = ""
     }
   }
@@ -337,8 +424,13 @@ function CreatePage() {
               <div className="cr-editor">
                 <div className="cr-editor-head">
                   <h3>✎ Create your content</h3>
-                  <button type="button" className="cr-ai-btn" onClick={() => setShowAI(true)}>✦ AI Assistant</button>
+                  <div className="cr-editor-actions">
+                    <RecentPostsDropdown currentPostId={postId || draftId} onUsePost={handleUsePreviousPost} />
+                    <button type="button" className="cr-ai-btn" onClick={() => setShowAI(true)}>✦ AI Assistant</button>
+                  </div>
                 </div>
+
+                {previousPostInfo && <p className="rp-info" role="status">{previousPostInfo}</p>}
 
                 <div className="cr-toolbar">
                   <select>

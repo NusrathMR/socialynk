@@ -93,7 +93,7 @@
   background: #fff;
   border: 1px solid #e5e5e5;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .cr-editor-head {
@@ -101,6 +101,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 14px 16px;
+  border-radius: 7px 7px 0 0;
+  gap: 12px;
+}
+
+.cr-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .cr-editor-head h3 {
@@ -182,6 +190,16 @@
   border-top: 1px solid #eee;
   font-size: 10px;
   color: #777;
+  border-radius: 0 0 7px 7px;
+}
+
+.rp-info {
+  margin: 0 16px 10px;
+  background: #f4f4f5;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 12px;
+  padding: 10px 12px;
 }
 
 /* ---------- Image editing ---------- */
@@ -397,6 +415,182 @@
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
+}
+
+/* ---------- Use a previous post dropdown ---------- */
+.rp-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.rp-trigger,
+.rp-use,
+.rp-retry {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.rp-trigger {
+  padding: 6px 12px;
+  font-size: 11px;
+}
+
+.rp-trigger:hover,
+.rp-trigger[aria-expanded="true"] {
+  border-color: #000;
+}
+
+.rp-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 360px;
+  max-width: 90vw;
+  max-height: 360px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 50;
+}
+
+.rp-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.rp-item:hover {
+  background: #fafafa;
+}
+
+.rp-item-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.rp-preview {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.rp-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rp-chip {
+  flex-shrink: 0;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 9px;
+}
+
+.rp-chip--draft {
+  background: #f4f4f5;
+  color: #555;
+}
+
+.rp-chip--scheduled {
+  background: #e8eefc;
+  color: #334155;
+}
+
+.rp-chip--published {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.rp-chip--failed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.rp-time {
+  color: #777;
+  font-size: 10px;
+}
+
+.rp-use {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  font-size: 10px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.rp-use:hover:not(:disabled) {
+  background: #000;
+  color: #fff;
+}
+
+.rp-use:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rp-note {
+  background: #fafafa;
+  border-top: 1px solid #eee;
+  padding: 10px 12px;
+  color: #777;
+  font-size: 10px;
+}
+
+.rp-state {
+  padding: 14px 12px;
+  color: #777;
+  font-size: 12px;
+}
+
+.rp-error {
+  margin: 12px;
+  padding: 10px 12px;
+  color: #991b1b;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.rp-error p {
+  margin-bottom: 8px;
+}
+
+.rp-retry {
+  padding: 5px 9px;
+  font-size: 10px;
+}
+
+@media (max-width: 600px) {
+  .cr-editor-head {
+    align-items: flex-start;
+  }
+
+  .cr-editor-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .rp-panel {
+    right: 0;
+    left: auto;
+    width: calc(100vw - 40px);
+    max-width: calc(100vw - 40px);
+  }
 }
 
 /* ---------- Right column ---------- */
