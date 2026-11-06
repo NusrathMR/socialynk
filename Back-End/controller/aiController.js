@@ -1,5 +1,26 @@
 // The service function has the same name as my controller, so I rename it here
 import { generateCaption as generateCaptionFromGemini } from "../services/geminiService.js";
+import BrandMemory from "../models/brandMemoryModel.js"
+
+const BRAND_CONTEXT_FIELDS = [
+  ["brandName", "Brand name"],
+  ["businessDescription", "Business description"],
+  ["productsServices", "Products and services"],
+  ["targetAudience", "Target audience"],
+  ["toneOfVoice", "Tone of voice"],
+  ["favoriteHashtags", "Favorite hashtags"],
+  ["keywords", "Keywords"],
+  ["brandRules", "Brand rules"],
+]
+
+function createBrandContext(memory) {
+  if (!memory) return null
+
+  return BRAND_CONTEXT_FIELDS.reduce((context, [field, label]) => {
+    if (memory[field]) context[label] = memory[field]
+    return context
+  }, {})
+}
 
 export const generateCaption = async (req, res) => {
   try {
@@ -11,7 +32,17 @@ export const generateCaption = async (req, res) => {
       return res.status(400).json({ message: "Prompt must be 2000 characters or fewer" });
     }
 
-    const caption = await generateCaptionFromGemini({ prompt: prompt.trim() });
+    const activeMemory = req.user.activeBrandMemory
+      ? await BrandMemory.findOne({
+        _id: req.user.activeBrandMemory,
+        user: req.user._id,
+      }).lean()
+      : null
+    const brandContext = createBrandContext(activeMemory)
+    const caption = await generateCaptionFromGemini({
+      prompt: prompt.trim(),
+      brandContext,
+    });
 
     res.status(200).json({ caption });
 

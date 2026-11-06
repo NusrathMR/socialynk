@@ -11,6 +11,7 @@ import mediaRoute from "./routes/mediaRoute.js"
 import adminUserRoute from "./routes/adminUserRoute.js"
 import adminDashboardRoute from "./routes/adminDashboardRoute.js"
 import adminSettingsRoute from "./routes/adminSettingsRoute.js"
+import brandMemoryRoute from "./routes/brandMemoryRoute.js"
 
 
 
@@ -30,6 +31,7 @@ app.use("/api/media", mediaRoute)
 app.use("/api/admin/users", adminUserRoute)
 app.use("/api/admin/dashboard", adminDashboardRoute)
 app.use("/api/admin/settings", adminSettingsRoute)
+app.use("/api/brand-memory", brandMemoryRoute)
 
 
 app.listen(PORT, ()=>{

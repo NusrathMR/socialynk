@@ -55,6 +55,12 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    activeBrandMemory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "BrandMemory",
+      default: null,
+    },
   },
   {
     timestamps: true,
