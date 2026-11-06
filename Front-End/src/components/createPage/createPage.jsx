@@ -1,7 +1,7 @@
 import "./createPage.css"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
-import api, { uploadImage, deleteImage } from "../../api/api.js"
+import api, { getBrandMemory, uploadImage, deleteImage } from "../../api/api.js"
 import Sidebar from "../sideBar/sidebar.jsx"
 import TopBar from "../topBar/topBar.jsx"
 import AIAssistantModal from "../aiAssistant/aiAssistant.jsx"
@@ -74,9 +74,46 @@ function CreatePage() {
   const [showSchedule, setShowSchedule] = useState(false)
   const [scheduling, setScheduling] = useState(false)
   const [scheduleError, setScheduleError] = useState("")
+  const [activeBrandMemory, setActiveBrandMemory] = useState(null)
+  const [brandMemoryLoading, setBrandMemoryLoading] = useState(true)
+  const [brandMemoryLoadError, setBrandMemoryLoadError] = useState(false)
+  const activeMemoryRequestRef = useRef(0)
+
+  useEffect(() => {
+    let active = true
+    const requestId = activeMemoryRequestRef.current
+
+    getBrandMemory()
+      .then((result) => {
+        if (active && requestId === activeMemoryRequestRef.current) {
+          setActiveBrandMemory(result.activeMemory)
+        }
+      })
+      .catch(() => {
+        if (active && requestId === activeMemoryRequestRef.current) {
+          setBrandMemoryLoadError(true)
+        }
+      })
+      .finally(() => {
+        if (active && requestId === activeMemoryRequestRef.current) {
+          setBrandMemoryLoading(false)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const handleActiveMemoryChange = useCallback((memory) => {
+    activeMemoryRequestRef.current += 1
+    setActiveBrandMemory(memory)
+    setBrandMemoryLoading(false)
+    setBrandMemoryLoadError(false)
+  }, [])
 
   // ---------- Load the Recent Drafts list ----------
-  const loadDrafts = async () => {
+  const loadDrafts = useCallback(async () => {
     setDraftsLoading(true)
     try {
       const response = await api.get("/posts?status=draft&limit=5")
@@ -88,12 +125,13 @@ function CreatePage() {
     } finally {
       setDraftsLoading(false)
     }
-  }
+  }, [])
 
   // Run once, when the page opens
   useEffect(() => {
-    loadDrafts()
-  }, [])
+    const timeout = setTimeout(loadDrafts, 0)
+    return () => clearTimeout(timeout)
+  }, [loadDrafts])
 
   // ---------- Open a draft when the address has ?draft=<id> ----------
   useEffect(() => {
@@ -135,34 +173,9 @@ function CreatePage() {
     }
   }, [draftId, setSearchParams])
 
-  // ---------- Autosave changed content ----------
-  useEffect(() => {
-    const current = JSON.stringify({ caption, contentType, media: images })
-    if (current === lastSavedRef.current) return
-    if (saveStatus === "saving") return
-    if (saveStatus === "error") return
-    if (
-      !postId &&
-      caption.trim().length < 3 &&
-      images.length === 0 &&
-      !forceAutosaveRef.current
-    ) return
-
-    const timeout = setTimeout(() => {
-      autosaveTimeoutRef.current = null
-      forceAutosaveRef.current = false
-      saveDraft()
-    }, 1500)
-    autosaveTimeoutRef.current = timeout
-    return () => {
-      clearTimeout(timeout)
-      if (autosaveTimeoutRef.current === timeout) autosaveTimeoutRef.current = null
-    }
-  }, [caption, contentType, images, saveStatus, postId])
-
   // ---------- Save (create the first time, update afterwards) ----------
   // Returns the saved post, or null if saving failed
-  async function saveDraft() {
+  const saveDraft = useCallback(async () => {
     if (!postId && caption.trim() === "" && images.length === 0) {
       setErrorMessage("Write something before you save...")
       return null
@@ -197,7 +210,32 @@ function CreatePage() {
     } finally {
       savingRef.current = false
     }
-  }
+  }, [caption, contentType, images, postId, loadDrafts])
+
+  // ---------- Autosave changed content ----------
+  useEffect(() => {
+    const current = JSON.stringify({ caption, contentType, media: images })
+    if (current === lastSavedRef.current) return
+    if (saveStatus === "saving") return
+    if (saveStatus === "error") return
+    if (
+      !postId &&
+      caption.trim().length < 3 &&
+      images.length === 0 &&
+      !forceAutosaveRef.current
+    ) return
+
+    const timeout = setTimeout(() => {
+      autosaveTimeoutRef.current = null
+      forceAutosaveRef.current = false
+      saveDraft()
+    }, 1500)
+    autosaveTimeoutRef.current = timeout
+    return () => {
+      clearTimeout(timeout)
+      if (autosaveTimeoutRef.current === timeout) autosaveTimeoutRef.current = null
+    }
+  }, [caption, contentType, images, saveStatus, postId, saveDraft])
 
   // ---------- Start a blank draft ----------
   const handleNewDraft = () => {
@@ -425,6 +463,15 @@ function CreatePage() {
                 <div className="cr-editor-head">
                   <h3>✎ Create your content</h3>
                   <div className="cr-editor-actions">
+                    <span className="cr-memory-indicator">
+                      {brandMemoryLoading
+                        ? "Loading memory..."
+                        : brandMemoryLoadError
+                          ? "Memory status unavailable"
+                          : activeBrandMemory
+                            ? `Using: ${activeBrandMemory.brandName}`
+                            : "Memory is off"}
+                    </span>
                     <RecentPostsDropdown currentPostId={postId || draftId} onUsePost={handleUsePreviousPost} />
                     <button type="button" className="cr-ai-btn" onClick={() => setShowAI(true)}>✦ AI Assistant</button>
                   </div>
@@ -463,6 +510,7 @@ function CreatePage() {
                 {showAI && (
                   <AIAssistantModal
                     onClose={() => setShowAI(false)}
+                    onActiveMemoryChange={handleActiveMemoryChange}
                     onUseInEditor={(text) => {
                       setCaption(text)      // put the AI text into the editor
                       setShowAI(false)      // close the popup

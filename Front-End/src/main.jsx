@@ -18,6 +18,7 @@ import ManageUsers from './components/admin/manageUsers.jsx'
 import AdminSettings from './components/admin/adminSettings.jsx'
 import AdminComingSoon from './components/admin/comingSoon.jsx'
 import SimulatorPage from './components/simulator/simulatorPage.jsx'
+import BrandMemoryRoute from './components/settings/brandMemoryRoute.jsx'
 
 const router = createBrowserRouter([
   {
@@ -54,7 +55,7 @@ const router = createBrowserRouter([
     },
   {
   path: "/settings",
-  element: (<ProtectedRoute><ComingSoon title="Settings" /></ProtectedRoute>)
+  element: (<ProtectedRoute><BrandMemoryRoute /></ProtectedRoute>)
   },
   {
   path: "/channels",

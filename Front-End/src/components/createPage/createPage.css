@@ -111,6 +111,12 @@
   gap: 8px;
 }
 
+.cr-memory-indicator {
+  color: #777;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
 .cr-editor-head h3 {
   font-size: 13px;
   font-weight: 600;

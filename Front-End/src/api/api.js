@@ -128,3 +128,76 @@ export async function getRecentPosts() {
 
   return response.data.posts
 }
+
+export async function getBrandMemory() {
+  const response = await api.get("/brand-memory", {
+    validateStatus: () => true,
+  })
+
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(response.data?.message || "Could not load Brand Memory.")
+  }
+
+  return response.data
+}
+
+async function saveBrandMemory(method, path, memory) {
+  const response = await api[method](path, memory, {
+    headers: { "Content-Type": "application/json" },
+    validateStatus: () => true,
+  })
+
+  if (response.status < 200 || response.status >= 300) {
+    const error = new Error(response.data?.message || "Could not save Brand Memory.")
+    error.fieldErrors = response.data?.errors || {}
+    throw error
+  }
+
+  return response.data.memory
+}
+
+export function createBrandMemory(memory) {
+  return saveBrandMemory("post", "/brand-memory", memory)
+}
+
+export function updateBrandMemory(id, memory) {
+  return saveBrandMemory("put", `/brand-memory/${encodeURIComponent(id)}`, memory)
+}
+
+export async function deleteBrandMemory(id) {
+  const response = await api.delete(`/brand-memory/${encodeURIComponent(id)}`, {
+    validateStatus: () => true,
+  })
+
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(response.data?.message || "Could not delete Brand Memory.")
+  }
+
+  return response.data
+}
+
+export async function activateBrandMemory(id) {
+  const response = await api.patch(
+    `/brand-memory/${encodeURIComponent(id)}/activate`,
+    {},
+    { validateStatus: () => true }
+  )
+
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(response.data?.message || "Could not activate Brand Memory.")
+  }
+
+  return response.data.activeMemory
+}
+
+export async function deactivateBrandMemory() {
+  const response = await api.patch("/brand-memory/deactivate", {}, {
+    validateStatus: () => true,
+  })
+
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(response.data?.message || "Could not turn off Brand Memory.")
+  }
+
+  return response.data.activeMemory
+}

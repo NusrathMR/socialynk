@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import "./aiAssistant.css";
-import { generateCaption } from "../../api/api.js";
+import {
+  activateBrandMemory,
+  deactivateBrandMemory,
+  generateCaption,
+  getBrandMemory,
+} from "../../api/api.js";
 
 const chips = ["✦ Generate Caption", "◎ Improve Hook", "✓ Fix Grammar", "# Hashtags", "Fix Tone"];
 
@@ -11,7 +16,7 @@ function getCurrentTime() {
   });
 }
 
-function AiAssistant({ onClose, onUseInEditor }) {
+function AiAssistant({ onClose, onUseInEditor, onActiveMemoryChange }) {
   const [messages, setMessages] = useState([
     {
       id: "welcome",
@@ -23,6 +28,11 @@ function AiAssistant({ onClose, onUseInEditor }) {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [brandMemories, setBrandMemories] = useState([])
+  const [activeMemory, setActiveMemory] = useState(null)
+  const [memoryLoading, setMemoryLoading] = useState(true)
+  const [memorySaving, setMemorySaving] = useState(false)
+  const [memoryError, setMemoryError] = useState("")
   const [copiedMessageId, setCopiedMessageId] = useState(null);
   const chatEndRef = useRef(null);
   const copiedTimeoutRef = useRef(null);
@@ -41,6 +51,28 @@ function AiAssistant({ onClose, onUseInEditor }) {
     return () => window.clearTimeout(copiedTimeoutRef.current);
   }, []);
 
+  useEffect(() => {
+    let active = true
+
+    getBrandMemory()
+      .then((result) => {
+        if (!active) return
+        setBrandMemories(result.memories)
+        setActiveMemory(result.activeMemory)
+        onActiveMemoryChange?.(result.activeMemory)
+      })
+      .catch((error) => {
+        if (active) setMemoryError(error.message)
+      })
+      .finally(() => {
+        if (active) setMemoryLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [onActiveMemoryChange])
+
   // Scroll to the newest message
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -48,7 +80,7 @@ function AiAssistant({ onClose, onUseInEditor }) {
 
   async function sendMessage(prompt = input.trim(), isRetry = false) {
     const text = prompt.trim();
-    if (loading) return;
+    if (loading || memorySaving) return;
     if (!text) return;
 
     if (!isRetry) {
@@ -124,6 +156,24 @@ function AiAssistant({ onClose, onUseInEditor }) {
     }
   }
 
+  async function handleMemoryChange(event) {
+    const memoryId = event.target.value
+    setMemorySaving(true)
+    setMemoryError("")
+
+    try {
+      const selectedMemory = memoryId
+        ? await activateBrandMemory(memoryId)
+        : await deactivateBrandMemory()
+      setActiveMemory(selectedMemory)
+      onActiveMemoryChange?.(selectedMemory)
+    } catch (error) {
+      setMemoryError(error.message)
+    } finally {
+      setMemorySaving(false)
+    }
+  }
+
   function handleKeyDown(e) {
     // Enter sends, Shift+Enter makes a new line
     if (e.key === "Enter" && !e.shiftKey) {
@@ -154,6 +204,20 @@ function AiAssistant({ onClose, onUseInEditor }) {
             <span>Working with:</span>
             <small>Social Post • Linked to editor caption</small>
           </div>
+          <label className="ai-memory-control">
+            <span>Memory:</span>
+            <select
+              value={activeMemory?.id || ""}
+              onChange={handleMemoryChange}
+              disabled={memoryLoading || memorySaving}
+              aria-label="Active Brand Memory"
+            >
+              <option value="">{memoryLoading ? "Loading..." : "Memory Off"}</option>
+              {brandMemories.map((memory) => (
+                <option key={memory.id} value={memory.id}>{memory.brandName}</option>
+              ))}
+            </select>
+          </label>
           <div className="ai-chips">
             {chips.map((chip) => (
               <button key={chip} type="button" onClick={() => setInput(chip.slice(2))}>
@@ -162,6 +226,16 @@ function AiAssistant({ onClose, onUseInEditor }) {
             ))}
           </div>
         </div>
+        {memoryError && <p className="ai-memory-error" role="alert">{memoryError}</p>}
+        {!memoryError && !memoryLoading && (
+          <p className="ai-memory-status" role="status">
+            {memorySaving
+              ? "Updating Brand Memory..."
+              : activeMemory
+                ? `Using ${activeMemory.brandName} memory`
+                : "Memory is off"}
+          </p>
+        )}
 
         {/* Chat area */}
         <div className="ai-chat">
@@ -271,7 +345,7 @@ function AiAssistant({ onClose, onUseInEditor }) {
                   type="button"
                   className="ai-send"
                   onClick={() => sendMessage()}
-                  disabled={loading}
+                  disabled={loading || memorySaving}
                 >
                   ↑
                 </button>
