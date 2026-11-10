@@ -134,7 +134,7 @@ function DashBoard(){
                                 👋
                             </>
                         }
-                        subtitle="Create. Edit. Publish. Grow. All in one place."
+npm                         subtitle="Create. Edit. Publish. Grow. All in one place."
                         searchShortcut="⌘K"
                     />
                     {notice && <p className="db-notice">{notice}</p>}
