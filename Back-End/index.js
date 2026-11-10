@@ -12,6 +12,7 @@ import adminUserRoute from "./routes/adminUserRoute.js"
 import adminDashboardRoute from "./routes/adminDashboardRoute.js"
 import adminSettingsRoute from "./routes/adminSettingsRoute.js"
 import brandMemoryRoute from "./routes/brandMemoryRoute.js"
+import {corsOptions} from "./config/corsConfig.js"
 
 
 
@@ -22,7 +23,7 @@ connectDb()
 startScheduler()
 
 app.use(bodyParser.json())
-app.use(cors())
+app.use(cors(corsOptions))
 
 app.use("/api/user", userRoute)
 app.use("/api/posts", postRoute)

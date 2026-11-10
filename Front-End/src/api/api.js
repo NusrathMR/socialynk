@@ -3,33 +3,108 @@ import axios from "axios"
 const BASE_URL = `${import.meta.env.VITE_API_URL}/api`
 
 const api = axios.create({
-  baseURL: BASE_URL
+  baseURL: BASE_URL,
+  withCredentials: true,
 })
 
+let accessToken = null
+let refreshRequest = null
+
+export function setAccessToken(token) {
+  accessToken = token
+}
+
+export function clearAccessToken() {
+  accessToken = null
+}
+
+function requestRefresh() {
+  if (!refreshRequest) {
+    refreshRequest = axios
+      .post(`${BASE_URL}/user/refresh`, {}, { withCredentials: true })
+      .then((response) => {
+        setAccessToken(response.data.token)
+        return response.data
+      })
+      .finally(() => {
+        refreshRequest = null
+      })
+  }
+
+  return refreshRequest
+}
+
+export async function restoreSession() {
+  const session = await requestRefresh()
+  return session.user
+}
+
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token")
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`
   }
   return config
 })
 
+function canRefreshRequest(config, status) {
+  const requestUrl = config?.url || ""
+  const isPublicAuthRequest =
+    /\/user\/(signin|signup|refresh|logout)(?:$|\?)/.test(requestUrl)
+
+  return (
+    status === 401 &&
+    config &&
+    !config._retry &&
+    !config.skipAuthRefresh &&
+    !isPublicAuthRequest
+  )
+}
+
+async function retryWithRefreshedToken(config) {
+  config._retry = true
+
+  try {
+    const session = await requestRefresh()
+    config.headers.Authorization = `Bearer ${session.token}`
+    return await api(config)
+  } catch (refreshError) {
+    if ([401, 403].includes(refreshError.response?.status)) {
+      clearAccessToken()
+      window.dispatchEvent(new Event("auth:session-expired"))
+    }
+    throw refreshError
+  }
+}
+
+api.interceptors.response.use(
+  (response) => {
+    if (!canRefreshRequest(response.config, response.status)) {
+      return response
+    }
+    return retryWithRefreshedToken(response.config).catch(() => response)
+  },
+  (error) => {
+    if (!canRefreshRequest(error.config, error.response?.status)) {
+      return Promise.reject(error)
+    }
+    return retryWithRefreshedToken(error.config).catch(() => Promise.reject(error))
+  }
+)
+
 export default api
 
 export function generateCaption(prompt, signal) {
-  const token = localStorage.getItem("token")
-  const headers = { "Content-Type": "application/json" }
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
-
-  return fetch(`${api.defaults.baseURL}/ai/generate-caption`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ prompt }),
-    signal,
-  })
+  return api
+    .post(
+      "/ai/generate-caption",
+      { prompt },
+      { signal, validateStatus: () => true }
+    )
+    .then((response) => ({
+      ok: response.status >= 200 && response.status < 300,
+      status: response.status,
+      json: async () => response.data,
+    }))
 }
 
 export async function uploadImage(file) {

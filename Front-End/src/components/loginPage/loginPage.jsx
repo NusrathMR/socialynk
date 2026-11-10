@@ -15,6 +15,7 @@ function LoginPage(){
     const [showForgot, setShowForgot] = useState(false);
     const [status,setStatus] = useState(0)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [rememberMe, setRememberMe] = useState(false)
 
     const {login} = useAuth()
     const navigate = useNavigate()
@@ -25,13 +26,11 @@ function LoginPage(){
         setIsSubmitting(true)
 
         try{
-            const response = await api.post("/user/signin", { email, password }, {
+            const response = await api.post("/user/signin", { email, password, rememberMe }, {
                 validateStatus: () => true,
             })
 
             const replay = response.data
-            console.log("TOKEN:", replay.token)
-            console.log("USER:", replay.user)
             setMessage(replay.message)
 
             if(response.status >= 200 && response.status < 300){
@@ -161,7 +160,11 @@ function LoginPage(){
 
                     <div class="form-row">
                     <label class="remember">
-                        <input type="checkbox" checked /> Remember me
+                        <input
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(event) => setRememberMe(event.target.checked)}
+                        /> Remember me
                     </label>
                     <a href="#" 
                         onClick={(e) => {

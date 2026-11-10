@@ -41,9 +41,13 @@ function ProfileMenu({ direction = "down", align = "right", size = 44, avatarIni
     navigate(path)
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setOpen(false)
-    logout()
+    try {
+      await logout()
+    } catch (error) {
+      console.error("Could not invalidate the server login session:", error)
+    }
     navigate("/login", { replace: true })
   }
 

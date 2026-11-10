@@ -1,5 +1,9 @@
-﻿import { createContext, useContext, useState, useEffect } from "react"
-import api from "../../api/api.js"
+import { createContext, useContext, useState, useEffect, useRef } from "react"
+import api, {
+    clearAccessToken,
+    restoreSession,
+    setAccessToken,
+} from "../../api/api.js"
 
 const AuthContext = createContext()
 
@@ -16,48 +20,69 @@ function normalizeUser(userData) {
 }
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(() => {
-        const savedUser = localStorage.getItem("user")
-        if (!savedUser) return null
-
-        try {
-            return normalizeUser(JSON.parse(savedUser))
-        } catch {
-            localStorage.removeItem("user")
-            return null
-        }
-    })
+    const [user, setUser] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const authVersion = useRef(0)
 
     const login = (token, userData) => {
         const normalizedUser = normalizeUser(userData)
-        localStorage.setItem("token", token)
-        localStorage.setItem("user", JSON.stringify(normalizedUser))
+        authVersion.current += 1
+        setAccessToken(token)
         setUser(normalizedUser)
     }
 
-    const logout = () => {
-        localStorage.removeItem("token")
-        localStorage.removeItem("user")
+    const logout = async () => {
+        authVersion.current += 1
+        clearAccessToken()
         setUser(null)
+        await api.post("/user/logout", {}, { skipAuthRefresh: true })
     }
 
     useEffect(() => {
-        const token = localStorage.getItem("token")
-        if (!token) return
+        let isMounted = true
+        const requestVersion = authVersion.current
 
-        api.get("/user/me").then((response) => {
-            const normalizedUser = normalizeUser(response.data.user)
-            setUser(normalizedUser)
-            localStorage.setItem("user", JSON.stringify(normalizedUser))
-        }).catch((error) => {
-            if (error.response?.status === 401 || error.response?.status === 403) {
-                logout()
-            }
-        })
+        const handleSessionExpired = () => {
+            authVersion.current += 1
+            clearAccessToken()
+            setUser(null)
+        }
+
+        window.addEventListener("auth:session-expired", handleSessionExpired)
+
+        restoreSession()
+            .then((userData) => {
+                if (isMounted && authVersion.current === requestVersion) {
+                    setUser(normalizeUser(userData))
+                }
+            })
+            .catch((error) => {
+                if (error.response?.status !== 401 && error.response?.status !== 403) {
+                    console.error("Could not restore the login session:", error)
+                }
+                if (isMounted && authVersion.current === requestVersion) {
+                    setUser(null)
+                }
+            })
+            .finally(() => {
+                if (isMounted) {
+                    setIsLoading(false)
+                }
+            })
+
+        return () => {
+            isMounted = false
+            window.removeEventListener("auth:session-expired", handleSessionExpired)
+        }
+    }, [])
+
+    useEffect(() => {
+        localStorage.removeItem("token")
+        localStorage.removeItem("user")
     }, [])
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, isLoading, login, logout }}>
             {children}
         </AuthContext.Provider>
     )
