@@ -19,6 +19,8 @@ import AdminSettings from './components/admin/adminSettings.jsx'
 import AdminComingSoon from './components/admin/comingSoon.jsx'
 import SimulatorPage from './components/simulator/simulatorPage.jsx'
 import BrandMemoryRoute from './components/settings/brandMemoryRoute.jsx'
+import TermsPage from './pages/legal/TermsPage.jsx'
+import PrivacyPage from './pages/legal/PrivacyPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -32,6 +34,14 @@ const router = createBrowserRouter([
   {
     path:"/signup",
     element:<SignupPage/>
+  },
+  {
+    path: "/terms",
+    element: <TermsPage />,
+  },
+  {
+    path: "/privacy",
+    element: <PrivacyPage />,
   },
   {
     path:"/dashboard",

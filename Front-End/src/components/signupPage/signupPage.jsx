@@ -1,4 +1,4 @@
-import { Link, Navigate, replace } from "react-router-dom";
+import { Link } from "react-router-dom";
 import "./signupPage.css"
 import { useState } from "react";
 import api from "../../api/api.js"
@@ -13,14 +13,22 @@ function SignupPage(){
     const [message, setMessage] = useState("")
     const [status, setStatus] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [acceptedTerms, setAcceptedTerms] = useState(false)
+    const [termsError, setTermsError] = useState("")
 
     const navigate = useNavigate()
 
     const handleCreateAccount = async (event)=>{
 
         event.preventDefault()
+        if (!acceptedTerms) {
+            setTermsError("Please accept the terms and conditions.")
+            return
+        }
+
         setIsSubmitting(true)
         setMessage("")
+        setTermsError("")
 
         try{
             const response = await api.post("/user/signup", {
@@ -95,7 +103,11 @@ function SignupPage(){
                     <h2>Create your account</h2>
                     <p class="su-sub">Start creating and managing your social media content with Socialynk.</p>
 
-                    <form onSubmit={handleCreateAccount}>
+                    <form onSubmit={handleCreateAccount} onInvalid={()=>{
+                        if (!acceptedTerms) {
+                            setTermsError("Please accept the terms and conditions.")
+                        }
+                    }}>
                         <label for="name">FULL NAME</label>
                         <div class="su-field">
                         <input type="text" id="name" placeholder="Alex pandiyan" value={name} onChange={(event)=>setName(event.target.value)} required/>
@@ -135,10 +147,28 @@ function SignupPage(){
                         <span class="su-field-icon">&#9673;</span>
                         </div>
 
-                        <label class="su-agree">
-                        <input type="checkbox" checked/>
-                        I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+                        <label className="su-agree" htmlFor="accepted-terms">
+                        <input
+                            id="accepted-terms"
+                            type="checkbox"
+                            checked={acceptedTerms}
+                            aria-invalid={termsError ? "true" : "false"}
+                            aria-describedby={termsError ? "terms-error" : undefined}
+                            onChange={(event)=>{
+                                setAcceptedTerms(event.target.checked)
+                                if (event.target.checked) {
+                                    setTermsError("")
+                                }
+                            }}
+                        />
+                        I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
                         </label>
+
+                        {termsError && (
+                        <div id="terms-error" className="su-message error" role="alert">
+                            {termsError}
+                        </div>
+                        )}
 
                         {message && (
                         <div className={"su-message " + (status === 200 || status === 201 ? "success" : "error")}>

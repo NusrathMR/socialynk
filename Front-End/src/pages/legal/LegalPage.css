@@ -1,0 +1,208 @@
+.lg-page {
+  min-height: 100vh;
+  background: #fafafa;
+  color: #111;
+  font-family: "Inter", Arial, sans-serif;
+}
+
+.lg-header {
+  min-height: 68px;
+  padding: 14px max(24px, calc((100% - 1040px) / 2));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #fff;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.lg-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.lg-logo {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: #111;
+  border-radius: 8px;
+}
+
+.lg-header-link {
+  padding: 9px 13px;
+  color: #111;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.lg-main {
+  width: min(100% - 48px, 1004px);
+  margin: 40px auto;
+  display: grid;
+  grid-template-columns: minmax(0, 220px) minmax(0, 760px);
+  align-items: start;
+  gap: 24px;
+}
+
+.lg-toc {
+  position: sticky;
+  top: 24px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+}
+
+.lg-toc h2 {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.lg-toc ul,
+.lg-section ul {
+  padding-left: 18px;
+  list-style: disc;
+}
+
+.lg-toc li {
+  margin: 9px 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.lg-article {
+  min-width: 0;
+  padding: 32px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+}
+
+.lg-article h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.lg-meta {
+  margin-top: 8px;
+  color: #777 !important;
+  font-size: 12px !important;
+}
+
+.lg-notice {
+  margin: 20px 0;
+  padding: 10px 12px;
+  background: #f4f4f5;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 12px !important;
+}
+
+.lg-article p,
+.lg-section li {
+  color: #333;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.lg-intro {
+  margin-bottom: 20px;
+}
+
+.lg-section {
+  margin-top: 28px;
+}
+
+.lg-section h2 {
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  scroll-margin-top: 24px;
+}
+
+.lg-section p + p {
+  margin-top: 10px;
+}
+
+.lg-section ul {
+  margin-top: 8px;
+}
+
+.lg-section li {
+  margin: 5px 0;
+}
+
+.lg-page a {
+  color: #111;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.lg-page a:hover {
+  color: #555;
+}
+
+.lg-brand,
+.lg-header-link {
+  text-decoration: none !important;
+}
+
+.lg-footer {
+  padding: 0 24px 28px;
+  color: #777;
+  text-align: center;
+  font-size: 12px;
+}
+
+.lg-footer nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 12px;
+}
+
+.lg-footer p {
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .lg-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lg-toc {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .lg-header {
+    padding: 12px 16px;
+  }
+
+  .lg-main {
+    width: calc(100% - 24px);
+    margin: 20px auto;
+    gap: 14px;
+  }
+
+  .lg-article {
+    padding: 24px;
+  }
+
+  .lg-article h1 {
+    font-size: 25px;
+  }
+}
