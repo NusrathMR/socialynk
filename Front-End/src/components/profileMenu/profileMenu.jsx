@@ -2,13 +2,8 @@ import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Settings, LayoutGrid, CircleDollarSign, LogOut, Zap } from "lucide-react"
 import { useAuth } from "../AuthContext/authContext.jsx"
+import getInitials from "../../utils/getInitials.js"
 import "./profileMenu.css"
-
-
-function getInitials(email) {
-  if (!email) return "?"
-  return email.split("@")[0].slice(0, 2).toUpperCase()
-}
 
 function ProfileMenu({ direction = "down", align = "right", size = 44, avatarInitials }) {
   const [open, setOpen] = useState(false)
@@ -73,7 +68,7 @@ function ProfileMenu({ direction = "down", align = "right", size = 44, avatarIni
         ) : avatarInitials ? (
           <span className="db-avatar-light">{avatarInitials}</span>
         ) : (
-          getInitials(user?.email)
+          getInitials(user?.name)
         )}
       </button>
 

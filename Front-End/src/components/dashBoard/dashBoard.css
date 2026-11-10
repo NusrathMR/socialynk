@@ -4,6 +4,15 @@
   padding: 24px 32px 40px;
 }
 
+.db-greeting-name {
+  display: inline-block;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
 /* Stats */
 .db-stats {
   display: grid;
@@ -452,6 +461,10 @@
 
   .db-main {
     padding: 20px 16px 32px;
+  }
+
+  .db-greeting-name {
+    max-width: 140px;
   }
 
   .db-steps,

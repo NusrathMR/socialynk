@@ -1,16 +1,20 @@
 import "./dashBoard.css"
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../AuthContext/authContext.jsx";
 import api from "../../api/api.js"
 import Sidebar from "../sideBar/sidebar.jsx";
 import TopBar from "../topBar/topBar.jsx";
 import ScheduleModal from "../scheduleModel/scheduleModel.jsx";
+import { getFirstName } from "../../utils/getFirstName.js";
+import { getGreeting } from "../../utils/getGreeting.js";
 
 const PLATFORM_ICONS = { instagram: "◎", facebook: "👍", linkedin: "▣", x: "#", tiktok: "♪" };
 const PLATFORM_NAMES = { instagram: "Instagram", facebook: "Facebook", linkedin: "LinkedIn", x: "X", tiktok: "TikTok" };
 
 function DashBoard(){
     const navigate = useNavigate();
+    const { user, isLoading } = useAuth();
     const [stats, setStats] = useState({ scheduled: 0, drafts: 0, pending: 0 });
     const [statsLoading, setStatsLoading] = useState(true);
     const [statsError, setStatsError] = useState(false);
@@ -20,6 +24,9 @@ function DashBoard(){
     const [scheduleError, setScheduleError] = useState("");
     const [notice, setNotice] = useState("");
     const schedulingRef = useRef(false);
+    const greeting = getGreeting();
+    const firstName = isLoading ? "" : getFirstName(user);
+    const fullName = typeof user?.name === "string" ? user.name.trim() : "";
 
     async function loadStats() {
         try {
@@ -113,7 +120,20 @@ function DashBoard(){
                 <main class="db-main">
 
                     <TopBar
-                        title="Good morning, Nusrath 👋"
+                        title={
+                            <>
+                                {greeting}
+                                {firstName && (
+                                    <>
+                                        {", "}
+                                        <span className="db-greeting-name" title={fullName || firstName}>
+                                            {firstName}
+                                        </span>
+                                    </>
+                                )}{" "}
+                                👋
+                            </>
+                        }
                         subtitle="Create. Edit. Publish. Grow. All in one place."
                         searchShortcut="⌘K"
                     />

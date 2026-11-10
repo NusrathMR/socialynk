@@ -1,4 +1,3 @@
-import { useAuth } from "../AuthContext/authContext.jsx";
 import "./topBar.css";
 import ProfileMenu from "../profileMenu/profileMenu.jsx"
 
@@ -11,15 +10,6 @@ function TopBar({
   searchValue,
   onSearchChange,
 }) {
-  const { user } = useAuth();
-  const emailPrefix = typeof user?.email === "string"
-    ? user.email.split("@")[0].slice(0, 2).toUpperCase()
-    : "";
-  const initials = emailPrefix || "?";
-  const profilePicture = typeof user?.profilePicture === "string"
-    ? user.profilePicture.trim()
-    : "";
-
   return (
     <header className="top-bar">
       <div className="top-bar-heading">

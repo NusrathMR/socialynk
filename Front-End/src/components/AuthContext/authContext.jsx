@@ -14,7 +14,7 @@ function normalizeUser(userData) {
         ...userData,
         role: userData.role || "user",
         plan: userData.plan || "free",
-        name: userData.name || userData.fullName || userData.email?.split("@")[0] || "User",
+        name: userData.name || userData.fullName || userData.fullname,
         email: userData.email || "",
     }
 }
@@ -35,6 +35,8 @@ export function AuthProvider({ children }) {
         authVersion.current += 1
         clearAccessToken()
         setUser(null)
+        localStorage.removeItem("token")
+        localStorage.removeItem("user")
         await api.post("/user/logout", {}, { skipAuthRefresh: true })
     }
 
