@@ -242,15 +242,67 @@
 }
 
 .cr-upload {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 164px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 8px;
+  background: #fff;
+  border: 1.5px dashed #ccc;
+  border-radius: 8px;
+  text-align: center;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cr-upload.dragging {
+  border-color: #000;
+  background: #f4f4f5;
+  box-shadow: inset 0 0 0 1px #000;
+}
+
+.cr-upload-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.cr-dropzone {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 144px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  background: #fff;
-  border: 1.5px dashed #ccc;
-  border-radius: 8px;
   padding: 20px 10px;
+  background: transparent;
+  border: 0;
+  color: #000;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.cr-dropzone:hover,
+.cr-dropzone:focus-visible {
+  color: #444;
+}
+
+.cr-dropzone:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .cr-upload-icon {
@@ -270,35 +322,49 @@
   font-size: 11px;
 }
 
-.cr-upload p {
+.cr-upload-browse {
   font-size: 10px;
   color: #555;
   margin-top: 2px;
 }
 
-.cr-upload p a,
-.cr-upload p label {
-  display: block;
-  color: #000;
-  font-weight: 500;
-  text-decoration: underline;
-  margin-top: 2px;
-  cursor: pointer;
-}
-
-.cr-upload small {
+.cr-dropzone small {
   font-family: monospace;
   font-size: 8px;
   color: #aaa;
   margin-top: 14px;
 }
 
-.cr-images { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.cr-image { width: 70px; height: 70px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e5e5; }
+.cr-images {
+  box-sizing: border-box;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 70px);
+  justify-content: start;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 2px 2px 4px;
+}
+.cr-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e5e5e5;
+}
 .cr-upload-error { font-size: 11px; color: #991b1b; margin-top: 8px; }
-.cr-image-item { position: relative; width: 70px; height: 70px; }
+.cr-upload-success,
+.cr-upload-status { font-size: 10px; color: #555; margin-top: 8px; overflow-wrap: anywhere; }
+.cr-upload-success { color: #166534; }
+.cr-image-item {
+  position: relative;
+  box-sizing: border-box;
+  width: 70px;
+  height: 70px;
+}
 .cr-image-item.removing { opacity: 0.5; }
-.cr-image-remove { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: #000; color: #fff; font-size: 13px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s ease; }
+.cr-image-remove { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 50%; border: none; background: #000; color: #fff; font-size: 13px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s ease; }
 .cr-image-remove:hover { background: #991b1b; }
 .cr-image-remove:disabled { cursor: not-allowed; }
 
@@ -582,6 +648,10 @@
 }
 
 @media (max-width: 600px) {
+  .cr-edit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .cr-editor-head {
     align-items: flex-start;
   }

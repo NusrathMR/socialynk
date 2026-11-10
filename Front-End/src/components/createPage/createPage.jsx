@@ -17,6 +17,10 @@ const CONTENT_TYPES = [
   { id: "reel", icon: "▶", title: "Reel", text: "Vertical 9:16 story" },
 ]
 
+const MAX_IMAGE_SIZE_BYTES = 25 * 1024 * 1024
+const SUPPORTED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp"]
+const SUPPORTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+
 // "2025-01-01T10:00:00Z" becomes "3 hours ago"
 function timeAgo(dateString) {
   const minutes = Math.floor((Date.now() - new Date(dateString).getTime()) / 60000)
@@ -42,8 +46,11 @@ function CreatePage() {
   const [caption, setCaption] = useState("")
   const [contentType, setContentType] = useState("social_post")
   const [images, setImages] = useState([])
+  const [uploadedImageIds, setUploadedImageIds] = useState(() => new Set())
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState("")
+  const [uploadProgress, setUploadProgress] = useState("")
+  const [isDragging, setIsDragging] = useState(false)
   const [removingId, setRemovingId] = useState("")
   const [postId, setPostId] = useState(null)        // null until the first save
   const lastSavedRef = useRef(JSON.stringify({
@@ -57,6 +64,9 @@ function CreatePage() {
   const previousPostInfoTimeoutRef = useRef(null)
   const draftLoadGenerationRef = useRef(0)
   const imageUploadGenerationRef = useRef(0)
+  const imageUploadInProgressRef = useRef(false)
+  const dragDepthRef = useRef(0)
+  const imageInputRef = useRef(null)
   const forceAutosaveRef = useRef(false)
 
   // Save feedback
@@ -157,6 +167,7 @@ function CreatePage() {
         setCaption(post.caption)
         setContentType(post.contentType)
         setImages(postMedia)
+        setUploadedImageIds(new Set())
         setSaveStatus("idle")
         setErrorMessage("")
       } catch {
@@ -255,8 +266,10 @@ function CreatePage() {
     setCaption("")
     setContentType("social_post")
     setImages([])
+    setUploadedImageIds(new Set())
     setUploading(false)
     setUploadError("")
+    setUploadProgress("")
     setSaveStatus("idle")
     setErrorMessage("")
     setSearchParams({})
@@ -280,6 +293,7 @@ function CreatePage() {
     })
     setPostId(null)
     setImages([])
+    setUploadedImageIds(new Set())
     setUploading(false)
     setUploadError("")
     setCaption(previousCaption)
@@ -376,30 +390,119 @@ function CreatePage() {
 
   const visibleDrafts = drafts.filter((d) => d.caption && d.caption.trim() !== "")
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
+  const handleFiles = async (fileList) => {
+    const files = Array.from(fileList)
+    if (!files.length) return
+    if (imageUploadInProgressRef.current) {
+      setUploadError("Please wait for the current image upload to finish.")
+      return
+    }
 
     const generation = imageUploadGenerationRef.current
     setUploadError("")
+    setUploadProgress("")
+
+    const validFiles = []
+    const errors = []
+    for (const file of files) {
+      const extension = file.name.split(".").pop()?.toLowerCase()
+      const type = file.type.toLowerCase()
+      if (
+        !SUPPORTED_IMAGE_EXTENSIONS.includes(extension) ||
+        (type && !SUPPORTED_IMAGE_TYPES.includes(type))
+      ) {
+        errors.push(`${file.name}: Unsupported format. Choose JPG, PNG, or WebP.`)
+      } else if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        errors.push(`${file.name}: Image must be 25 MB or smaller.`)
+      } else {
+        validFiles.push(file)
+      }
+    }
+
+    if (!validFiles.length) {
+      setUploadError(errors.join(" "))
+      return
+    }
+
+    imageUploadInProgressRef.current = true
     setUploading(true)
 
     try {
-      const media = await uploadImage(file)
-      if (generation === imageUploadGenerationRef.current) {
-        setImages((prev) => [...prev, media])
+      for (const [index, file] of validFiles.entries()) {
+        setUploadProgress(`Uploading ${index + 1} of ${validFiles.length}: ${file.name}`)
+        try {
+          const media = await uploadImage(file)
+          if (generation !== imageUploadGenerationRef.current) break
+          setImages((prev) => [...prev, media])
+          setUploadedImageIds((prev) => new Set(prev).add(media.publicId || media.url))
+        } catch (error) {
+          if (generation !== imageUploadGenerationRef.current) break
+          errors.push(`${file.name}: ${error.message || "Image upload failed."}`)
+        }
       }
-    } catch (error) {
+
       if (generation === imageUploadGenerationRef.current) {
-        setUploadError(error.message)
+        setUploadError(errors.join(" "))
       }
     } finally {
+      imageUploadInProgressRef.current = false
       if (generation === imageUploadGenerationRef.current) {
         setUploading(false)
+        setUploadProgress("")
       }
-      e.target.value = ""
     }
   }
+
+  const handleFileChange = (e) => {
+    void handleFiles(e.target.files)
+    e.target.value = ""
+  }
+
+  const handleDragEnter = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!Array.from(e.dataTransfer.types).includes("Files")) return
+    dragDepthRef.current += 1
+    setIsDragging(true)
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (Array.from(e.dataTransfer.types).includes("Files")) {
+      e.dataTransfer.dropEffect = "copy"
+    }
+  }
+
+  const handleDragLeave = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1)
+    if (dragDepthRef.current === 0) setIsDragging(false)
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragDepthRef.current = 0
+    setIsDragging(false)
+    void handleFiles(e.dataTransfer.files)
+  }
+
+  useEffect(() => {
+    const preventFileNavigation = (event) => {
+      if (Array.from(event.dataTransfer?.types || []).includes("Files")) {
+        event.preventDefault()
+      }
+    }
+
+    document.addEventListener("dragover", preventFileNavigation)
+    document.addEventListener("drop", preventFileNavigation)
+    return () => {
+      document.removeEventListener("dragover", preventFileNavigation)
+      document.removeEventListener("drop", preventFileNavigation)
+    }
+  }, [])
 
   const handleRemoveImage = async (image) => {
     if (!window.confirm("Remove this image?")) return
@@ -410,6 +513,11 @@ function CreatePage() {
     try {
       await deleteImage(image.publicId)
       setImages((prev) => prev.filter((img) => img.publicId !== image.publicId))
+      setUploadedImageIds((prev) => {
+        const next = new Set(prev)
+        next.delete(image.publicId || image.url)
+        return next
+      })
     } catch (error) {
       setUploadError(error.message)
     } finally {
@@ -541,37 +649,65 @@ function CreatePage() {
               </div>
 
               <div className="cr-edit-grid">
-                <div className="cr-upload">
-                  <span className="cr-upload-icon">☁</span>
-                  <strong>Upload Image</strong>
+                <div
+                  className={isDragging ? "cr-upload dragging" : "cr-upload"}
+                  onDragEnter={handleDragEnter}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
                   <input
                     id="image-input"
+                    ref={imageInputRef}
                     type="file"
                     accept="image/png, image/jpeg, image/webp, image/jpg"
+                    multiple
                     onChange={handleFileChange}
-                    style={{ display: "none" }}
+                    className="cr-upload-input"
+                    tabIndex={-1}
+                    aria-label="Choose images to upload"
                   />
-                  <p>Drag &amp; drop or <label htmlFor="image-input">Select a file</label></p>
-                  <small>PNG, JPG, WebP up to 25MB</small>
-                  {uploading && <p>Uploading...</p>}
-                  {uploadError && <p className="cr-upload-error">{uploadError}</p>}
-                  <div className="cr-images">
-                    {images.map((img) => (
-                      <div
-                        className={removingId === img.publicId ? "cr-image-item removing" : "cr-image-item"}
-                        key={img.publicId || img.url}
-                      >
-                        <img src={img.url} alt="" className="cr-image" />
-                        <button
-                          type="button"
-                          className="cr-image-remove"
-                          onClick={() => handleRemoveImage(img)}
-                          disabled={removingId === img.publicId}
-                          aria-label="Remove image"
-                        >×</button>
-                      </div>
-                    ))}
-                  </div>
+                  <button
+                    type="button"
+                    className="cr-dropzone"
+                    onClick={() => imageInputRef.current?.click()}
+                    aria-label="Upload images. Drag and drop files here or press to browse."
+                  >
+                    <span className="cr-upload-icon" aria-hidden="true">☁</span>
+                    <strong>{isDragging ? "Drop your images here" : "Drag and drop your images here"}</strong>
+                    <span className="cr-upload-browse">or click to browse files</span>
+                    <small>JPG, JPEG, PNG, WebP · up to 25 MB per image</small>
+                  </button>
+                  {uploading && (
+                    <p className="cr-upload-status" role="status" aria-live="polite">
+                      {uploadProgress || "Uploading..."}
+                    </p>
+                  )}
+                  {uploadedImageIds.size > 0 && (
+                    <p className="cr-upload-success" role="status">
+                      {uploadedImageIds.size} image{uploadedImageIds.size === 1 ? "" : "s"} uploaded successfully.
+                    </p>
+                  )}
+                  {uploadError && <p className="cr-upload-error" role="alert">{uploadError}</p>}
+                  {images.length > 0 && (
+                    <div className="cr-images">
+                      {images.map((img) => (
+                        <div
+                          className={removingId === img.publicId ? "cr-image-item removing" : "cr-image-item"}
+                          key={img.publicId || img.url}
+                        >
+                          <img src={img.url} alt="" className="cr-image" />
+                          <button
+                            type="button"
+                            className="cr-image-remove"
+                            onClick={() => handleRemoveImage(img)}
+                            disabled={removingId === img.publicId}
+                            aria-label="Remove image"
+                          >×</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="cr-tool">
