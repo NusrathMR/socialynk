@@ -1,7 +1,8 @@
 .ai-wrap {
   flex: 1;
   min-width: 0;
-  background: #fafafa;
+  background: var(--app-bg);
+  color: var(--text);
 }
 
 .ai-content {
@@ -19,7 +20,7 @@
 .ai-intro p,
 .ai-tool-card p,
 .ai-info-card li {
-  color: #777;
+  color: var(--text-muted);
   font-size: 12px;
   line-height: 1.6;
 }
@@ -32,8 +33,8 @@
 
 .ai-tool-card,
 .ai-info-card {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
 }
@@ -45,10 +46,10 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 14px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #f4f4f5;
-  color: #000;
+  background: var(--surface-muted);
+  color: var(--text);
 }
 
 .ai-tool-card h3,
@@ -66,10 +67,10 @@
   display: inline-block;
   margin-top: 14px;
   padding: 4px 8px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: #f4f4f5;
-  color: #666;
+  background: var(--surface-muted);
+  color: var(--text-muted);
   font-size: 10px;
 }
 
@@ -88,25 +89,26 @@
 
 .ai-actions button {
   padding: 10px 14px;
-  border: 1px solid #000;
+  border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
 
-.ai-button-dark {
-  background: #000;
-  color: #fff;
+.ai-actions button.ai-button-dark {
+  background: var(--button-bg);
+  border-color: var(--button-bg);
+  color: var(--button-text);
 }
 
 .ai-button-light {
-  background: #fff;
-  color: #000;
+  background: var(--surface);
+  color: var(--text);
 }
 
 .ai-actions button:focus-visible {
-  outline: 2px solid #555;
+  outline: 2px solid var(--text-muted);
   outline-offset: 3px;
 }
 

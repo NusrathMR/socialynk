@@ -2,29 +2,30 @@
 .pb-wrap {
   flex: 1;
   min-width: 0;
-  background: #fafafa;
+  background: var(--app-bg);
+  color: var(--text);
 }
 
 /* Tabs */
 .pb-tabs {
   display: flex;
   gap: 28px;
-  background: #fff;
-  border-bottom: 1px solid #e5e5e5;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
   padding: 0 20px;
 }
 
 .pb-tabs a {
   padding: 12px 0;
   font-size: 12px;
-  color: #777;
+  color: var(--text-muted);
   border-bottom: 2px solid transparent;
 }
 
 .pb-tabs a.active {
-  color: #000;
+  color: var(--text);
   font-weight: 600;
-  border-bottom-color: #000;
+  border-bottom-color: var(--text);
 }
 
 /* Body layout */
@@ -51,24 +52,24 @@
 
 .pb-head p {
   font-size: 11px;
-  color: #777;
+  color: var(--text-muted);
   margin-top: 4px;
 }
 
 .pb-open-simulator {
   flex-shrink: 0;
   padding: 8px 11px;
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  color: #000;
+  color: var(--text);
   font-size: 11px;
   font-weight: 600;
   text-decoration: none;
 }
 
 .pb-open-simulator:hover {
-  border-color: #000;
+  border-color: var(--text-muted);
 }
 
 /* Post list */
@@ -83,8 +84,8 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 14px;
   cursor: pointer;
@@ -93,12 +94,12 @@
 
 .pb-post:hover {
   transform: translateY(-3px);
-  border-color: #000;
+  border-color: var(--text-muted);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 }
 
 .pb-post.active {
-  border: 2px solid #000;
+  border: 2px solid var(--text);
   padding: 13px;
 }
 
@@ -106,8 +107,9 @@
   flex-shrink: 0;
   width: 56px;
   text-align: center;
-  background: #f4f4f5;
-  border: 1px solid #e5e5e5;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  color: var(--text);
   border-radius: 6px;
   padding: 6px 4px;
 }
@@ -116,7 +118,7 @@
   display: block;
   font-size: 7px;
   font-weight: 600;
-  color: #666;
+  color: var(--text-muted);
   margin-bottom: 3px;
 }
 
@@ -128,7 +130,7 @@
 .pb-date span {
   display: block;
   font-size: 9px;
-  color: #777;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -159,32 +161,33 @@
   align-items: center;
   gap: 8px;
   font-size: 10px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .pb-post-meta i {
   font-style: normal;
-  color: #bbb;
+  color: var(--text-muted);
 }
 
 .pb-status {
-  background: #f4f4f5;
-  border: 1px solid #e5e5e5;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  color: var(--text);
   font-size: 9px;
   padding: 2px 8px;
   border-radius: 10px;
 }
 
 .pb-status.failed {
-  color: #c62828;
-  border-color: #efb4b4;
-  background: #fff5f5;
+  color: var(--danger-text);
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
 }
 
 .pb-status.sent {
-  color: #2e7d32;
-  border-color: #c8e6c9;
-  background: #f1f8f2;
+  color: var(--success-text);
+  border-color: var(--success-border);
+  background: var(--success-bg);
 }
 
 .pb-post-actions {
@@ -197,19 +200,20 @@
   background: none;
   border: none;
   font-size: 12px;
-  color: #333;
+  color: var(--text);
   cursor: pointer;
 }
 
 .pb-post-actions button:hover {
-  color: #888;
+  color: var(--text-muted);
 }
 
 .pb-post-actions .pb-context-action {
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 5px;
   padding: 5px 7px;
-  background: #fff;
+  background: var(--surface);
+  color: var(--text);
   font-size: 10px;
 }
 
@@ -222,8 +226,9 @@
 .pb-add {
   width: 100%;
   height: 40px;
-  background: #fff;
-  border: 1.5px dashed #ccc;
+  background: var(--surface);
+  border: 1.5px dashed var(--border);
+  color: var(--text);
   border-radius: 8px;
   font-size: 12px;
   cursor: pointer;
@@ -232,14 +237,14 @@
 }
 
 .pb-add:hover {
-  border-color: #000;
+  border-color: var(--text-muted);
 }
 
 .pb-schedule-btn {
   width: 100%;
   height: 44px;
-  background: #000;
-  color: #fff;
+  background: var(--button-bg);
+  color: var(--button-text);
   border: none;
   border-radius: 6px;
   font-size: 13px;
@@ -254,27 +259,28 @@
 
 .pb-notice {
   font-size: 12px;
-  color: #1b5e20;
+  color: var(--success-text);
   padding: 8px 12px;
-  background: #eff8ef;
-  border: 1px solid #c8e6c9;
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
   border-radius: 6px;
 }
 
 .pb-error {
   margin: 0 0 12px;
   padding: 8px 10px;
-  color: #c62828;
-  background: #fff5f5;
-  border: 1px solid #efb4b4;
+  color: var(--danger-text);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
   border-radius: 6px;
   font-size: 11px;
 }
 
 /* ---------- Right column ---------- */
 .pb-right {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
   border-radius: 10px;
   padding: 16px;
   display: flex;
@@ -296,15 +302,15 @@
 
 .pb-panel-head a {
   font-size: 11px;
-  color: #555;
+  color: var(--text-muted);
 }
 
 /* Preview card */
 .pb-preview {
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 14px;
-  background: #fafafa;
+  background: var(--surface-muted);
 }
 
 .pb-preview-top {
@@ -321,8 +327,8 @@
 .pb-preview-logo {
   width: 30px;
   height: 30px;
-  background: #000;
-  color: #fff;
+  background: var(--button-bg);
+  color: var(--button-text);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -337,11 +343,11 @@
 
 .pb-preview-top small {
   font-size: 9px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .pb-preview-dots {
-  color: #777;
+  color: var(--text-muted);
 }
 
 .pb-preview > p {
@@ -395,7 +401,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px 12px;
   margin-bottom: 8px;
@@ -406,23 +412,23 @@
   padding: 2px 6px;
   border-radius: 8px;
   font-size: 9px;
-  background: #f1f1f2;
-  color: #666;
+  background: var(--surface-muted);
+  color: var(--text-muted);
 }
 
 .pb-platform-result.success {
-  color: #2e7d32;
-  background: #f1f8f2;
+  color: var(--success-text);
+  background: var(--success-bg);
 }
 
 .pb-platform-result.failed {
-  color: #c62828;
-  background: #fff5f5;
+  color: var(--danger-text);
+  background: var(--danger-bg);
 }
 
 .pb-empty {
   font-size: 12px;
-  color: #777;
+  color: var(--text-muted);
   text-align: center;
   padding: 20px;
 }

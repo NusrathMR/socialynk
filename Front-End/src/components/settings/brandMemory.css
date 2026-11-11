@@ -1,21 +1,26 @@
 .bm-layout {
   min-height: 100vh;
+  background: var(--app-bg);
+  color: var(--text);
 }
 
 .bm-page {
   flex: 1;
   min-width: 0;
+  background: var(--app-bg);
+  color: var(--text);
 }
 
 .bm-main {
   max-width: 1000px;
   margin: 0 auto;
   padding: 28px 32px 48px;
+  color: var(--text);
 }
 
 .bm-card {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 24px;
 }
@@ -33,7 +38,7 @@
 
 .bm-card-heading p,
 .bm-empty p {
-  color: #777;
+  color: var(--text-muted);
   font-size: 12px;
   line-height: 1.6;
 }
@@ -49,23 +54,25 @@
   flex-direction: column;
   gap: 7px;
   min-width: 0;
+  color: var(--text);
   font-size: 12px;
   font-weight: 600;
 }
 
 .bm-field > span b {
-  color: #991b1b;
+  color: var(--danger-text);
 }
 
 .bm-field input,
 .bm-field textarea,
 .bm-field select {
   width: 100%;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 10px 11px;
-  background: #fff;
-  color: #111;
+  background: var(--input-bg);
+  color: var(--text);
+  color-scheme: inherit;
   font: inherit;
   font-weight: 400;
   font-size: 12px;
@@ -80,23 +87,28 @@
 .bm-field input:focus,
 .bm-field textarea:focus,
 .bm-field select:focus {
-  outline: 2px solid #111;
+  outline: 2px solid var(--text);
   outline-offset: 1px;
 }
 
 .bm-field [aria-invalid="true"] {
-  border-color: #b91c1c;
+  border-color: var(--danger-text);
+}
+
+.bm-field input::placeholder,
+.bm-field textarea::placeholder {
+  color: var(--text-muted);
 }
 
 .bm-field > small {
-  color: #777;
+  color: var(--text-muted);
   font-size: 10px;
   font-weight: 400;
   line-height: 1.4;
 }
 
 .bm-field .bm-field-error {
-  color: #991b1b;
+  color: var(--danger-text);
 }
 
 .bm-form-footer {
@@ -109,7 +121,7 @@
 }
 
 .bm-character-count {
-  color: #777;
+  color: var(--text-muted);
   font-size: 11px;
 }
 
@@ -120,7 +132,8 @@
 }
 
 .bm-button {
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
+  color: var(--text);
   border-radius: 6px;
   padding: 9px 13px;
   font: inherit;
@@ -136,37 +149,37 @@
 }
 
 .bm-button-dark {
-  background: #000;
-  border-color: #000;
-  color: #fff;
+  background: var(--button-bg);
+  border-color: var(--button-bg);
+  color: var(--button-text);
 }
 
 .bm-button-dark:hover:not(:disabled) {
-  background: #333;
+  background: var(--button-hover-bg);
 }
 
 .bm-button-light {
-  background: #fff;
-  color: #111;
+  background: var(--surface);
+  color: var(--text);
 }
 
 .bm-button-light:hover:not(:disabled) {
-  border-color: #000;
+  border-color: var(--text-muted);
 }
 
 .bm-button-danger {
-  background: #fff;
-  border-color: #fecaca;
-  color: #991b1b;
+  background: var(--surface);
+  border-color: var(--danger-border);
+  color: var(--danger-text);
 }
 
 .bm-button-danger:hover:not(:disabled) {
-  background: #fee2e2;
+  background: var(--danger-bg);
 }
 
 .bm-privacy {
   margin-top: 16px;
-  color: #777;
+  color: var(--text-muted);
   font-size: 10px;
   line-height: 1.5;
 }
@@ -185,9 +198,10 @@
   width: 44px;
   height: 44px;
   margin-bottom: 16px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: #f4f4f5;
+  background: var(--surface-muted);
+  color: var(--text);
 }
 
 .bm-empty p {
@@ -232,14 +246,14 @@
 }
 
 .bm-list-heading p {
-  color: #777;
+  color: var(--text-muted);
   font-size: 11px;
   line-height: 1.5;
 }
 
 .bm-active-summary {
-  background: #f4f4f5;
-  border: 1px solid #e5e5e5;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 11px;
@@ -254,14 +268,14 @@
 .bm-memory-card {
   min-width: 0;
   padding: 18px;
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
 }
 
 .bm-memory-card.active {
-  border-color: #111;
-  box-shadow: 0 0 0 1px #111;
+  border-color: var(--text);
+  box-shadow: 0 0 0 1px var(--text);
 }
 
 .bm-memory-card-heading {
@@ -277,7 +291,7 @@
 }
 
 .bm-memory-card-heading p {
-  color: #666;
+  color: var(--text-muted);
   font-size: 11px;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -286,9 +300,9 @@
 .bm-active-chip {
   flex-shrink: 0;
   padding: 4px 7px;
-  background: #111;
+  background: var(--button-bg);
   border-radius: 4px;
-  color: #fff;
+  color: var(--button-text);
   font-size: 9px;
   font-weight: 600;
 }
@@ -302,7 +316,7 @@
 
 .bm-memory-details dt {
   margin-bottom: 3px;
-  color: #777;
+  color: var(--text-muted);
   font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
@@ -320,17 +334,17 @@
   flex-wrap: wrap;
   gap: 7px;
   padding-top: 12px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border);
 }
 
 .bm-detail {
   padding: 16px 0;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border);
 }
 
 .bm-detail dt {
   margin-bottom: 7px;
-  color: #777;
+  color: var(--text-muted);
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -338,7 +352,7 @@
 }
 
 .bm-detail dd {
-  color: #111;
+  color: var(--text);
   font-size: 12px;
   line-height: 1.6;
   white-space: pre-wrap;
@@ -346,7 +360,7 @@
 }
 
 .bm-loading {
-  color: #777;
+  color: var(--text-muted);
   font-size: 12px;
 }
 
@@ -359,15 +373,15 @@
 }
 
 .bm-success {
-  background: #f4f4f5;
-  border-color: #e5e5e5;
-  color: #222;
+  background: var(--surface-muted);
+  border-color: var(--border);
+  color: var(--text);
 }
 
 .bm-error {
-  background: #fee2e2;
-  border-color: #fca5a5;
-  color: #991b1b;
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger-text);
 }
 
 @media (max-width: 700px) {

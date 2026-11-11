@@ -202,7 +202,8 @@ a {
 /* ---------- Right panel ---------- */
 .right-panel {
   flex: 1;
-  background: #fff;
+  background: var(--app-bg);
+  color: var(--text);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -225,7 +226,7 @@ a {
   margin: 10px 0 36px;
   font-size: 15px;
   line-height: 1.6;
-  color: #666;
+  color: var(--text-muted);
 }
 
 form label {
@@ -241,11 +242,18 @@ form input.password-input {
   width: 100%;
   height: 43px;
   padding: 0 16px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fafafa;
+  background: var(--input-bg);
+  color: var(--text);
   font-size: 14px;
   margin-bottom: 24px;
+}
+
+form input[type="email"]::placeholder,
+form input[type="password"]::placeholder,
+form input.password-input::placeholder {
+  color: var(--text-muted);
 }
 
 .password-box {
@@ -256,7 +264,7 @@ form input.password-input {
   position: absolute;
   right: 16px;
   top: 12px;
-  color: #888;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -280,8 +288,8 @@ form input.password-input {
 .login-btn {
   width: 100%;
   height: 49px;
-  background: #000;
-  color: #fff;
+  background: var(--button-bg);
+  color: var(--button-text);
   border: none;
   border-radius: 10px;
   font-size: 15px;
@@ -294,7 +302,7 @@ form input.password-input {
   align-items: center;
   gap: 14px;
   margin: 28px 0;
-  color: #888;
+  color: var(--text-muted);
   font-size: 14px;
   letter-spacing: 1px;
 }
@@ -304,7 +312,7 @@ form input.password-input {
   content: "";
   flex: 1;
   height: 1px;
-  background: #e5e5e5;
+  background: var(--border);
 }
 
 .social-btn {
@@ -314,8 +322,9 @@ form input.password-input {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
   border-radius: 8px;
   font-size: 15px;
   margin-bottom: 12px;
@@ -342,11 +351,11 @@ form input.password-input {
   text-align: center;
   margin-top: 28px;
   font-size: 15px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .signup-text a {
-  color: #000;
+  color: var(--text);
   font-weight: 600;
 }
 
@@ -354,11 +363,11 @@ form input.password-input {
 .right-footer {
   display: flex;
   justify-content: space-between;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border);
   padding-top: 28px;
   margin-top: 60px;
   font-size: 12px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .right-footer a {

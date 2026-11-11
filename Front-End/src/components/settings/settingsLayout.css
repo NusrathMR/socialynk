@@ -99,8 +99,8 @@
 .settings-content .bm-layout {
   display: block;
   min-height: 0;
-  color: inherit;
-  background: transparent;
+  color: var(--text);
+  background: var(--app-bg);
 }
 
 .settings-content .bm-layout > .app-sidebar,

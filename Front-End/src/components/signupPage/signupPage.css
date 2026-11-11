@@ -136,7 +136,8 @@ ul {
 /* ---------- Right panel ---------- */
 .su-right {
   flex: 1;
-  background: #fff;
+  background: var(--app-bg);
+  color: var(--text);
   display: flex;
   flex-direction: column;
   padding: 30px 60px;
@@ -145,11 +146,11 @@ ul {
 .su-login-link {
   text-align: right;
   font-size: 12px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .su-login-link a {
-  color: #000;
+  color: var(--text);
   font-weight: 600;
 }
 
@@ -168,7 +169,7 @@ ul {
 .su-sub {
   margin: 8px 0 28px;
   font-size: 13px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .su-form-wrap label {
@@ -187,10 +188,15 @@ ul {
   width: 100%;
   height: 37px;
   padding: 0 40px 0 12px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fafafa;
+  background: var(--input-bg);
+  color: var(--text);
   font-size: 13px;
+}
+
+.su-field input::placeholder {
+  color: var(--text-muted);
 }
 
 .su-field-icon {
@@ -198,7 +204,7 @@ ul {
   right: 14px;
   top: 10px;
   font-size: 13px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 /* Password strength */
@@ -274,8 +280,8 @@ ul {
 .su-btn-main {
   width: 100%;
   height: 40px;
-  background: #000;
-  color: #fff;
+  background: var(--button-bg);
+  color: var(--button-text);
   border: none;
   border-radius: 6px;
   font-size: 13px;
@@ -289,7 +295,7 @@ ul {
   gap: 14px;
   margin: 22px 0;
   font-size: 10px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .su-or::before,
@@ -297,7 +303,7 @@ ul {
   content: "";
   flex: 1;
   height: 1px;
-  background: #e5e5e5;
+  background: var(--border);
 }
 
 .su-social-row {
@@ -312,8 +318,9 @@ ul {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
@@ -342,9 +349,9 @@ ul {
   max-width: 400px;
   margin: auto auto 0;
   padding-top: 24px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border);
   font-size: 11px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .su-right-footer div {

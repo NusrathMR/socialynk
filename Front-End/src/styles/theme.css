@@ -9,6 +9,7 @@
   --hover: #eee;
   --button-bg: #111;
   --button-text: #fff;
+  --button-hover-bg: #333;
   --input-bg: #fff;
   --sidebar-bg: #242424;
   --menu-bg: #222;
@@ -17,6 +18,15 @@
   --menu-text: #f2f2f2;
   --menu-muted: #aaa;
   --menu-hover: #353535;
+  --success-bg: #eff8ef;
+  --success-border: #c8e6c9;
+  --success-text: #1b5e20;
+  --danger-bg: #fff5f5;
+  --danger-border: #efb4b4;
+  --danger-text: #b42318;
+  --warning-bg: #fff7e8;
+  --warning-border: #f3d59b;
+  --warning-text: #a05f00;
 }
 
 html[data-theme="dark"] {
@@ -30,7 +40,17 @@ html[data-theme="dark"] {
   --hover: #303030;
   --button-bg: #f1f1f1;
   --button-text: #111;
+  --button-hover-bg: #d4d4d4;
   --input-bg: #242424;
+  --success-bg: #17331f;
+  --success-border: #2b6036;
+  --success-text: #a5d6a7;
+  --danger-bg: #3b2020;
+  --danger-border: #7a3434;
+  --danger-text: #ffaaa5;
+  --warning-bg: #3a2f1a;
+  --warning-border: #745b2a;
+  --warning-text: #ffcf80;
 }
 
 html,
