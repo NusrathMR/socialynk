@@ -16,6 +16,7 @@ import AdminLayout from './components/admin/adminLayout.jsx'
 import AdminRoute from './components/admin/adminRoute.jsx'
 import AdminDashboard from './components/admin/adminDashboard.jsx'
 import ManageUsers from './components/admin/manageUsers.jsx'
+import UserDetails from './components/admin/userDetails/userDetails.jsx'
 import AdminSettings from './components/admin/adminSettings.jsx'
 import AdminComingSoon from './components/admin/comingSoon.jsx'
 import SimulatorPage from './components/simulator/simulatorPage.jsx'
@@ -113,7 +114,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: "users", element: <ManageUsers /> },
-      { path: "user-details", element: <AdminComingSoon title="User Details" /> },
+      { path: "users/:id", element: <UserDetails /> },
       { path: "plans-billing", element: <AdminComingSoon title="Plans & Billing" /> },
       { path: "system-monitoring", element: <AdminComingSoon title="System Monitoring" /> },
       { path: "ai-usage", element: <AdminComingSoon title="AI Usage" /> },

@@ -6,7 +6,6 @@ import "./adminPage.css"
 const adminTabs = [
   { label: "Admin Dashboard", to: "/admin", end: true },
   { label: "Manage Users", to: "/admin/users" },
-  { label: "User Details", to: "/admin/user-details" },
   { label: "Plans & Billing", to: "/admin/plans-billing" },
   { label: "System Monitoring", to: "/admin/system-monitoring" },
   { label: "AI Usage", to: "/admin/ai-usage" },
