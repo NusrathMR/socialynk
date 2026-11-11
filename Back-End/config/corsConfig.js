@@ -34,7 +34,7 @@ export const corsOptions = {
     return callback(null, false);
   },
   credentials: true,
-  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS", "PUT"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
