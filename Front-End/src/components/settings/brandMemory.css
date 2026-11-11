@@ -195,6 +195,10 @@
   margin-bottom: 18px;
 }
 
+.bm-empty .bm-button + .bm-button {
+  margin-top: 8px;
+}
+
 .bm-view-heading {
   display: flex;
   justify-content: space-between;

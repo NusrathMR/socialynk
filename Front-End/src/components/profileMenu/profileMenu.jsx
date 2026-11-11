@@ -90,7 +90,7 @@ function ProfileMenu({ direction = "down", align = "right", size = 44, avatarIni
 
           <div className="pm-divider"></div>
 
-          <button type="button" className="pm-item" role="menuitem" onClick={() => goTo("/settings")}>
+          <button type="button" className="pm-item" role="menuitem" onClick={() => goTo("/settings/profile")}>
             <Settings size={18} />
             <span>Settings</span>
           </button>

@@ -15,15 +15,15 @@
   display: flex;
   min-height: 100vh;
   font-family: "Inter", Arial, sans-serif;
-  color: #000;
-  background: #fafafa;
+  color: var(--text, #000);
+  background: var(--app-bg, #fafafa);
 }
 
 /* ---------- Sidebar ---------- */
 .app-sidebar {
   width: 260px;
   flex-shrink: 0;
-  background: #000;
+  background: var(--sidebar-bg, #242424);
   color: #fff;
   font-family: "Inter", Arial, sans-serif;
   padding: 20px 12px;

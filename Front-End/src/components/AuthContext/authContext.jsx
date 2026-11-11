@@ -31,6 +31,12 @@ export function AuthProvider({ children }) {
         setUser(normalizedUser)
     }
 
+    const updateUser = (userData) => {
+        setUser((currentUser) => currentUser
+            ? normalizeUser({ ...currentUser, ...userData })
+            : currentUser)
+    }
+
     const logout = async () => {
         authVersion.current += 1
         clearAccessToken()
@@ -84,7 +90,7 @@ export function AuthProvider({ children }) {
     }, [])
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+        <AuthContext.Provider value={{ user, isLoading, login, updateUser, logout }}>
             {children}
         </AuthContext.Provider>
     )

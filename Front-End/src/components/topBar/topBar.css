@@ -8,12 +8,12 @@
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  background: #fff;
-  border-bottom: 1px solid #e5e5e5;
+  background: var(--surface, #fff);
+  border-bottom: 1px solid var(--border, #e5e5e5);
   padding: 14px 20px;
   margin-bottom: 0;
   font-family: "Inter", Arial, sans-serif;
-  color: #000;
+  color: var(--text, #000);
 }
 
 .top-bar-heading {
@@ -32,15 +32,15 @@
 .top-bar-heading p {
   margin: 4px 0 0;
   font-size: 12px;
-  color: #777;
+  color: var(--text-muted, #777);
 }
 
 .top-bar-title-icon {
   width: 36px;
   height: 36px;
   flex: 0 0 36px;
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e5e5);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -59,12 +59,12 @@
   gap: 10px;
   width: 260px;
   min-width: 0;
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e5e5);
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 12px;
-  color: #777;
+  color: var(--text-muted, #777);
 }
 
 .top-bar-search > span {
@@ -78,18 +78,18 @@
   border: 0;
   outline: none;
   background: transparent;
-  color: #000;
+  color: var(--text, #000);
   font: inherit;
 }
 
 .top-bar-search input::placeholder {
-  color: #777;
+  color: var(--text-muted, #777);
   opacity: 1;
 }
 
 .top-bar-search kbd {
   flex: 0 0 auto;
-  background: #eee;
+  background: var(--surface-muted, #eee);
   border-radius: 4px;
   padding: 2px 6px;
   font-size: 10px;
@@ -99,8 +99,8 @@
   width: 36px;
   height: 36px;
   flex: 0 0 36px;
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e5e5);
   border-radius: 8px;
   display: flex;
   align-items: center;

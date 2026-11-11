@@ -3,11 +3,12 @@ import { createRoot } from 'react-dom/client'
 import LandingPage from './components/landingPage/landingPage.jsx'
 import SignupPage from './components/signupPage/signupPage.jsx'
 import LoginPage from './components/loginPage/loginPage.jsx'
-import {createBrowserRouter, RouterProvider } from 'react-router-dom'
+import {createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import DashBoard from './components/dashBoard/dashBoard.jsx'
 import CreatePage from './components/createPage/createPage.jsx'
 import PublishPage from './components/publishPage/publishPage.jsx'
 import { AuthProvider } from './components/AuthContext/authContext.jsx'
+import { ThemeProvider } from './components/ThemeContext/themeContext.jsx'
 import ProtectedRoute from './components/protectedRoute/protectedRoute.jsx'
 import ComingSoon from './components/comingSoon/comingSoon.jsx'
 import AiToolsPage from './components/aiToolsPage/aiToolsPage.jsx'
@@ -19,8 +20,13 @@ import AdminSettings from './components/admin/adminSettings.jsx'
 import AdminComingSoon from './components/admin/comingSoon.jsx'
 import SimulatorPage from './components/simulator/simulatorPage.jsx'
 import BrandMemoryRoute from './components/settings/brandMemoryRoute.jsx'
+import SettingsLayout from './components/settings/settingsLayout.jsx'
+import SettingsPlaceholder from './components/settings/settingsPlaceholder.jsx'
+import ProfileSettings from './components/settings/profileSettings.jsx'
+import AppearanceSettings from './components/settings/appearanceSettings.jsx'
 import TermsPage from './pages/legal/TermsPage.jsx'
 import PrivacyPage from './pages/legal/PrivacyPage.jsx'
+import './styles/theme.css'
 
 const router = createBrowserRouter([
   {
@@ -64,8 +70,28 @@ const router = createBrowserRouter([
       element: (<ProtectedRoute><AiToolsPage /></ProtectedRoute>)
     },
   {
-  path: "/settings",
-  element: (<ProtectedRoute><BrandMemoryRoute /></ProtectedRoute>)
+    path: "/settings",
+    element: <ProtectedRoute><SettingsLayout /></ProtectedRoute>,
+    children: [
+      { index: true, element: <Navigate to="/settings/profile" replace /> },
+      {
+        path: "profile",
+        element: <ProfileSettings />,
+      },
+      {
+        path: "appearance",
+        element: <AppearanceSettings />,
+      },
+      {
+        path: "security",
+        element: <SettingsPlaceholder title="Security" description="Manage your password and account security." />,
+      },
+      {
+        path: "account",
+        element: <SettingsPlaceholder title="Account" description="Manage your account status and access." />,
+      },
+      { path: "brand-memory", element: <BrandMemoryRoute /> },
+    ],
   },
   {
   path: "/channels",
@@ -101,7 +127,9 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <RouterProvider router={router}/>
+      <ThemeProvider>
+        <RouterProvider router={router}/>
+      </ThemeProvider>
     </AuthProvider>
   </StrictMode>
 )

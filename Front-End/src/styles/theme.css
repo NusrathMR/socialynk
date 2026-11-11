@@ -1,0 +1,396 @@
+:root {
+  color-scheme: light;
+  --app-bg: #fafafa;
+  --surface: #fff;
+  --surface-muted: #f4f4f5;
+  --text: #111;
+  --text-muted: #666;
+  --border: #e5e5e5;
+  --hover: #eee;
+  --button-bg: #111;
+  --button-text: #fff;
+  --input-bg: #fff;
+  --sidebar-bg: #242424;
+  --menu-bg: #222;
+  --menu-surface: #2b2b2b;
+  --menu-border: #444;
+  --menu-text: #f2f2f2;
+  --menu-muted: #aaa;
+  --menu-hover: #353535;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --app-bg: #121212;
+  --surface: #1d1d1d;
+  --surface-muted: #272727;
+  --text: #f1f1f1;
+  --text-muted: #b0b0b0;
+  --border: #383838;
+  --hover: #303030;
+  --button-bg: #f1f1f1;
+  --button-text: #111;
+  --input-bg: #242424;
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--app-bg);
+  color: var(--text);
+}
+
+body {
+  margin: 0;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.db-layout:not(.bm-layout),
+.settings-layout {
+  background: var(--app-bg);
+  color: var(--text);
+}
+
+.db-layout:not(.bm-layout) .db-main,
+.cr-wrap,
+.pb-wrap,
+.settings-main {
+  color: var(--text);
+}
+
+.cr-wrap,
+.pb-wrap,
+.settings-main {
+  background: var(--app-bg);
+}
+
+.app-sidebar {
+  background: var(--sidebar-bg);
+}
+
+.top-bar {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.top-bar-heading p,
+.top-bar-search {
+  color: var(--text-muted);
+}
+
+.top-bar-title-icon,
+.top-bar-search,
+.top-bar-bell {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.top-bar-search input {
+  color: var(--text);
+}
+
+.top-bar-search input::placeholder {
+  color: var(--text-muted);
+}
+
+.top-bar-search kbd {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.profile-menu .pm-popup {
+  background: var(--menu-bg);
+  border-color: var(--menu-border);
+  color: var(--menu-text);
+}
+
+.profile-menu .pm-plan {
+  color: var(--menu-muted);
+}
+
+.profile-menu .pm-upgrade {
+  background: var(--menu-surface);
+  border-color: var(--menu-border);
+  color: var(--menu-text);
+}
+
+.profile-menu .pm-divider {
+  background: var(--menu-border);
+}
+
+.profile-menu .pm-item {
+  color: var(--menu-text);
+}
+
+.profile-menu .pm-item:hover {
+  background: #353535;
+}
+
+.settings-layout {
+  --settings-surface: var(--surface);
+}
+
+.settings-layout .settings-nav,
+.settings-layout .settings-card {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.settings-layout .settings-nav h2,
+.settings-layout .settings-eyebrow,
+.settings-layout .settings-placeholder-copy {
+  color: var(--text-muted);
+}
+
+.settings-layout .settings-card h2 {
+  color: var(--text);
+}
+
+.settings-layout .settings-nav-link {
+  color: var(--text-muted);
+}
+
+.settings-layout .settings-nav-link:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.settings-layout .settings-nav-link.active {
+  background: var(--button-bg);
+  color: var(--button-text);
+}
+
+.profile-settings-heading h2,
+.profile-settings-field,
+.profile-avatar-controls > strong {
+  color: var(--text);
+}
+
+.profile-settings-heading > div > p:last-child,
+.profile-settings-help,
+.profile-avatar-controls > p {
+  color: var(--text-muted);
+}
+
+.profile-avatar-settings {
+  background: var(--app-bg);
+  border-color: var(--border);
+}
+
+.profile-settings-field input,
+.profile-settings-secondary {
+  background: var(--input-bg);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.profile-settings-field input[readonly] {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.profile-settings-save {
+  background: var(--button-bg);
+  border-color: var(--button-bg);
+  color: var(--button-text);
+}
+
+.profile-settings-secondary:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.db-stat,
+.db-step,
+.db-box,
+.cr-type,
+.cr-editor,
+.cr-tool,
+.cr-steps,
+.rp-trigger,
+.rp-panel,
+.cr-panel,
+.cr-template,
+.pb-tabs,
+.pb-post,
+.pb-right,
+.pb-panel,
+.pb-platform,
+.pb-open-simulator,
+.pb-post-actions .pb-context-action {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.db-stat-top,
+.db-stat-foot,
+.db-section-head a,
+.db-step p,
+.db-post-text,
+.db-preview-empty,
+.db-post-date,
+.cr-type small,
+.cr-memory-indicator,
+.cr-editor-foot,
+.cr-edit-links a,
+.cr-upload-browse,
+.cr-tool p,
+.cr-panel-head a,
+.cr-template p,
+.cr-draft small,
+.rp-time,
+.rp-note,
+.rp-state,
+.pb-tabs a,
+.pb-head p,
+.pb-post-meta,
+.pb-empty {
+  color: var(--text-muted);
+}
+
+.db-stat-icon,
+.db-chip,
+.db-step-visual,
+.db-ai-box,
+.db-preview-platforms span,
+.cr-type-icon,
+.cr-toolbar select,
+.cr-editor textarea,
+.rp-item:hover,
+.rp-note,
+.cr-upload,
+.cr-upload-icon,
+.cr-tool-icon,
+.cr-s b,
+.cr-tip,
+.cr-draft-icon,
+.pb-date,
+.pb-status,
+.pb-preview,
+.pb-platform-result {
+  background: var(--surface-muted);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.db-chip.dark,
+.db-step-btn,
+.db-btn-dark,
+.cr-type-icon.dark,
+.cr-image-remove,
+.cr-s.active b,
+.cr-next,
+.pb-schedule-btn,
+.pb-preview-logo {
+  background: var(--button-bg);
+  border-color: var(--button-bg);
+  color: var(--button-text);
+}
+
+.cr-type.active,
+.cr-type:hover,
+.cr-tool:hover,
+.cr-template:hover,
+.db-stat:hover,
+.db-step:hover,
+.pb-post:hover {
+  border-color: var(--text-muted);
+}
+
+.pb-post.active {
+  border-color: var(--text);
+}
+
+.cr-ai-btn,
+.cr-toolbar select,
+.cr-toolbar button,
+.cr-tool button,
+.rp-trigger,
+.rp-use,
+.rp-retry,
+.pb-add,
+.pb-post-actions button {
+  background: var(--input-bg);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.cr-editor textarea,
+.cr-toolbar select,
+.profile-settings-field input,
+.appearance-option {
+  color-scheme: inherit;
+}
+
+.cr-dropzone,
+.cr-s.active,
+.cr-template,
+.pb-open-simulator,
+.pb-post-actions button {
+  color: var(--text);
+}
+
+.cr-dropzone:hover,
+.cr-dropzone:focus-visible {
+  color: var(--text-muted);
+}
+
+.pb-tabs a.active {
+  color: var(--text);
+  border-bottom-color: var(--text);
+}
+
+.pb-preview-top small,
+.pb-post-meta i,
+.pb-date small,
+.pb-date span,
+.pb-post-actions button:hover {
+  color: var(--text-muted);
+}
+
+.pb-post-actions .pb-context-action:hover,
+.pb-open-simulator:hover,
+.pb-add:hover,
+.rp-trigger:hover,
+.rp-trigger[aria-expanded="true"] {
+  border-color: var(--text-muted);
+}
+
+.appearance-settings {
+  color: var(--text);
+}
+
+.appearance-heading h2,
+.appearance-option-copy strong {
+  color: var(--text);
+}
+
+.appearance-heading > p:last-child,
+.appearance-option-copy > span,
+.appearance-option-action {
+  color: var(--text-muted);
+}
+
+.appearance-option {
+  background: var(--surface);
+}
+
+.appearance-option:hover {
+  border-color: var(--text-muted);
+}
+
+.appearance-option.selected {
+  border-color: var(--text);
+  box-shadow: 0 0 0 1px var(--text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .db-layout:not(.bm-layout),
+  .top-bar,
+  .settings-card,
+  .settings-nav {
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  }
+}

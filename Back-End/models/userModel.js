@@ -10,6 +10,24 @@ const userSchema = new mongoose.Schema(
       maxlength: 100,
     },
 
+    fullName: {
+      type: String,
+      trim: true,
+      minlength: 2,
+      maxlength: 100,
+    },
+
+    username: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      minlength: 3,
+      maxlength: 30,
+      match: /^[a-z0-9_]+$/,
+      unique: true,
+      sparse: true,
+    },
+
     email: {
       type: String,
       required: true,
@@ -29,6 +47,11 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
+    profilePicturePublicId: {
+      type: String,
+      default: "",
+    },
+
     role: {
       type: String,
       enum: ["user", "admin"],
@@ -39,6 +62,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["free", "starter", "pro", "business"],
       default: "free",
+    },
+
+    theme: {
+      type: String,
+      enum: ["light", "dark"],
+      default: "light",
     },
 
     isEmailVerified: {

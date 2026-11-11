@@ -1,0 +1,149 @@
+.appearance-heading h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 20px;
+}
+
+.appearance-heading > p:last-child {
+  margin: 9px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.appearance-options {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.appearance-option {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.appearance-option:hover {
+  border-color: var(--text-muted);
+}
+
+.appearance-option.selected {
+  border-color: var(--text);
+  box-shadow: 0 0 0 1px var(--text);
+}
+
+.appearance-option:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.appearance-preview {
+  display: flex;
+  height: 82px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.appearance-preview.light {
+  background: #f5f5f5;
+}
+
+.appearance-preview.dark {
+  background: #151515;
+}
+
+.appearance-preview-sidebar {
+  width: 28px;
+  flex: 0 0 28px;
+  background: #242424;
+}
+
+.appearance-preview-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.appearance-preview-content span {
+  height: 20px;
+  border: 1px solid;
+  border-radius: 5px;
+}
+
+.appearance-preview.light .appearance-preview-content span {
+  border-color: #e2e2e2;
+  background: #fff;
+}
+
+.appearance-preview.dark .appearance-preview-content span {
+  border-color: #3a3a3a;
+  background: #252525;
+}
+
+.appearance-option-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.appearance-option-copy strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.appearance-option-copy > span {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.appearance-option-action {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.appearance-message {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  border: 1px solid;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.appearance-message.success {
+  border-color: #c8e6c9;
+  background: #eff8ef;
+  color: #1b5e20;
+}
+
+.appearance-message.error {
+  border-color: #efb4b4;
+  background: #fff5f5;
+  color: #b42318;
+}
+
+@media (max-width: 640px) {
+  .appearance-option {
+    grid-template-columns: 104px minmax(0, 1fr);
+  }
+
+  .appearance-preview {
+    height: 68px;
+  }
+
+  .appearance-option-action {
+    grid-column: 2;
+  }
+}

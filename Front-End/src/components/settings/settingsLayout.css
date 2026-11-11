@@ -1,0 +1,158 @@
+.settings-layout {
+  min-height: 100vh;
+  background: var(--app-bg, #fafafa);
+}
+
+.settings-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.settings-body {
+  padding: 28px;
+}
+
+.settings-workspace {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 22px;
+  max-width: 1280px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 16px;
+  border: 1px solid var(--border, #e8e8e8);
+  border-radius: 16px;
+  background: var(--surface, #fff);
+}
+
+.settings-nav h2 {
+  margin: 2px 8px 10px;
+  color: var(--text-muted, #777);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.settings-nav-link {
+  display: block;
+  padding: 11px 12px;
+  border-radius: 10px;
+  color: var(--text-muted, #444);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.settings-nav-link:hover {
+  background: var(--hover, #f5f5f5);
+  color: var(--text, #111);
+}
+
+.settings-nav-link.active {
+  background: var(--button-bg, #111);
+  color: var(--button-text, #fff);
+  font-weight: 600;
+}
+
+.settings-content {
+  min-width: 0;
+}
+
+.settings-card {
+  min-height: 180px;
+  padding: 24px;
+  border: 1px solid var(--border, #e8e8e8);
+  border-radius: 18px;
+  background: var(--surface, #fff);
+}
+
+.settings-eyebrow {
+  margin: 0 0 8px;
+  color: var(--text-muted, #777);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.settings-card h2 {
+  margin: 0;
+  color: var(--text, #111);
+  font-size: 20px;
+}
+
+.settings-placeholder-copy {
+  margin: 10px 0 0;
+  color: var(--text-muted, #666);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.settings-content .bm-layout {
+  display: block;
+  min-height: 0;
+  color: inherit;
+  background: transparent;
+}
+
+.settings-content .bm-layout > .app-sidebar,
+.settings-content .bm-page > .top-bar {
+  display: none;
+}
+
+.settings-content .bm-layout .bm-page {
+  width: 100%;
+}
+
+.settings-content .bm-main {
+  max-width: none;
+  padding: 0;
+}
+
+@media (max-width: 900px) {
+  .settings-body {
+    padding: 20px;
+  }
+
+  .settings-workspace {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .settings-nav {
+    flex-direction: row;
+    gap: 4px;
+    padding: 10px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: thin;
+  }
+
+  .settings-nav h2 {
+    display: none;
+  }
+
+  .settings-nav-link {
+    flex: 0 0 auto;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  .settings-body {
+    padding: 14px;
+  }
+
+  .settings-card {
+    padding: 18px;
+    border-radius: 14px;
+  }
+}

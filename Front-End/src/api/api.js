@@ -39,6 +39,65 @@ export async function restoreSession() {
   return session.user
 }
 
+export async function updateMyTheme(theme) {
+  const response = await api.patch(
+    "/user/me/theme",
+    { theme },
+    { validateStatus: () => true }
+  )
+
+  if (response.status < 200 || response.status >= 300) {
+    const error = new Error(response.data?.message || "Could not save your theme preference.")
+    error.fieldErrors = response.data?.errors || {}
+    throw error
+  }
+
+  return response.data.user
+}
+
+export async function updateMyProfile(profile) {
+  const response = await api.patch("/user/me", profile, {
+    validateStatus: () => true,
+  })
+
+  if (response.status < 200 || response.status >= 300) {
+    const error = new Error(response.data?.message || "Could not update profile.")
+    error.fieldErrors = response.data?.errors || {}
+    throw error
+  }
+
+  return response.data.user
+}
+
+export async function uploadMyAvatar(file) {
+  const formData = new FormData()
+  formData.append("image", file)
+
+  const response = await api.post("/user/me/avatar", formData, {
+    validateStatus: () => true,
+  })
+
+  if (response.status < 200 || response.status >= 300) {
+    const error = new Error(response.data?.message || "Could not upload profile picture.")
+    error.updatedUser = response.data?.user
+    throw error
+  }
+
+  return response.data.user
+}
+
+export async function deleteMyAvatar() {
+  const response = await api.delete("/user/me/avatar", {
+    validateStatus: () => true,
+  })
+
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(response.data?.message || "Could not remove profile picture.")
+  }
+
+  return response.data.user
+}
+
 api.interceptors.request.use((config) => {
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`
