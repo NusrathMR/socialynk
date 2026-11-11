@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-import api from "../../api/api.js"
+import { Link } from "react-router-dom"
+import api, { updateAdminUserStatus } from "../../api/api.js"
 import { useAuth } from "../AuthContext/authContext.jsx"
 import "./adminPage.css"
 
@@ -162,10 +163,7 @@ export default function ManageUsers() {
 
     setBusyId(userId)
     try {
-      const response = await api.patch(`/admin/users/${encodeURIComponent(userId)}/status`, {
-        isActive: !target.isActive,
-      })
-      const updatedUser = response.data.user
+      const updatedUser = await updateAdminUserStatus(userId, !target.isActive)
 
       if (!updatedUser?._id) {
         throw new Error("The server did not return the updated user.")
@@ -368,14 +366,22 @@ export default function ManageUsers() {
                     <td>{formatDate(person.createdAt)}</td>
 
                     <td>
-                      <button
-                        type="button"
-                        className="ad-action-button"
-                        onClick={() => toggleUserState(person._id)}
-                        disabled={isSelf || Boolean(busyId)}
-                      >
-                        {isBusy ? "Saving..." : isActive ? "Deactivate" : "Activate"}
-                      </button>
+                      <div className="ad-row-actions">
+                        <Link
+                          className="ad-action-button ad-view-action"
+                          to={`/admin/users/${encodeURIComponent(person._id)}`}
+                        >
+                          View
+                        </Link>
+                        <button
+                          type="button"
+                          className="ad-action-button"
+                          onClick={() => toggleUserState(person._id)}
+                          disabled={isSelf || Boolean(busyId)}
+                        >
+                          {isBusy ? "Saving..." : isActive ? "Deactivate" : "Activate"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )

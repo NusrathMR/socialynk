@@ -93,6 +93,48 @@ api.interceptors.response.use(
 
 export default api
 
+export async function getAdminUserById(id) {
+  const response = await api.get(`/admin/users/${encodeURIComponent(id)}`, {
+    validateStatus: () => true,
+  })
+
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(response.data?.message || "Could not load user details.")
+  }
+
+  return response.data
+}
+
+export async function updateAdminUser(id, updates) {
+  const response = await api.patch(
+    `/admin/users/${encodeURIComponent(id)}`,
+    updates,
+    { validateStatus: () => true }
+  )
+
+  if (response.status < 200 || response.status >= 300) {
+    const error = new Error(response.data?.message || "Could not update user details.")
+    error.fieldErrors = response.data?.errors || {}
+    throw error
+  }
+
+  return response.data.user
+}
+
+export async function updateAdminUserStatus(id, isActive) {
+  const response = await api.patch(
+    `/admin/users/${encodeURIComponent(id)}/status`,
+    { isActive },
+    { validateStatus: () => true }
+  )
+
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(response.data?.message || "Could not update this user's status.")
+  }
+
+  return response.data.user
+}
+
 export function generateCaption(prompt, signal) {
   return api
     .post(

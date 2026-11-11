@@ -452,6 +452,18 @@
   cursor: not-allowed;
 }
 
+.ad-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ad-view-action {
+  display: inline-block;
+  color: #000;
+  text-decoration: none;
+}
+
 .ad-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
