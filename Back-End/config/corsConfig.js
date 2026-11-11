@@ -11,8 +11,15 @@ if (process.env.NODE_ENV === "production" && !configuredOrigins) {
 }
 
 export const allowedOrigins = configuredOrigins
-  ? configuredOrigins.split(",").map((origin) => origin.trim()).filter(Boolean)
+  ? configuredOrigins
+      .split(",")
+      .map((origin) => origin.trim().replace(/\/+$/, ""))
+      .filter(Boolean)
   : defaultOrigins;
+
+if (allowedOrigins.some((origin) => origin.includes("*"))) {
+  throw new Error("CORS_ORIGINS must contain exact origins and cannot include '*'.");
+}
 
 if (process.env.NODE_ENV === "production" && allowedOrigins.length === 0) {
   throw new Error("CORS_ORIGINS must include at least one frontend origin.");
@@ -27,6 +34,8 @@ export const corsOptions = {
     return callback(null, false);
   },
   credentials: true,
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
 export function requireTrustedOrigin(req, res, next) {
