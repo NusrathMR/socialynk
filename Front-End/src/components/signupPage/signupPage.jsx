@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import PasswordInput from "../passwordInput/PasswordInput.jsx"
 import "./signupPage.css"
 import { useState } from "react";
 import api from "../../api/api.js"
@@ -122,8 +123,7 @@ function SignupPage(){
 
                         <label for="password">PASSWORD</label>
                         <div class="su-field">
-                        <input type="password" id="password" placeholder="password123" value={password} onChange={(event)=>setPassword(event.target.value)} required/>
-                        <span class="su-field-icon">&#9673;</span>
+                        <PasswordInput id="password" placeholder="password123" value={password} onChange={(event)=>setPassword(event.target.value)} required/>
                         </div>
 
                         {/* <div class="su-strength-head">
@@ -143,8 +143,7 @@ function SignupPage(){
 
                         <label for="confirm">CONFIRM PASSWORD</label>
                         <div class="su-field">
-                        <input type="password" id="confirm" placeholder="password123" value={confirmPassword} onChange={(event)=>setConfirmPassword(event.target.value)} required/>
-                        <span class="su-field-icon">&#9673;</span>
+                        <PasswordInput id="confirm" placeholder="password123" value={confirmPassword} onChange={(event)=>setConfirmPassword(event.target.value)} required/>
                         </div>
 
                         <label className="su-agree" htmlFor="accepted-terms">

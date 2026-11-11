@@ -236,7 +236,8 @@ form label {
 }
 
 form input[type="email"],
-form input[type="password"] {
+form input[type="password"],
+form input.password-input {
   width: 100%;
   height: 43px;
   padding: 0 16px;

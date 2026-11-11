@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext/authContext.jsx";
 import { Link } from "react-router-dom";
 import api from "../../api/api.js"
+import PasswordInput from "../passwordInput/PasswordInput.jsx"
 
 
 function LoginPage(){
@@ -148,8 +149,7 @@ function LoginPage(){
 
                     <label for="password">PASSWORD</label>
                     <div class="password-box">
-                    <input type="password" id="password" placeholder="password1234" value={password} onChange={(event)=>setPassword(event.target.value)} required/>
-                    <span class="eye">◉</span>
+                    <PasswordInput id="password" placeholder="password1234" value={password} onChange={(event)=>setPassword(event.target.value)} required/>
                     </div>
 
                     {message && (
