@@ -9,7 +9,10 @@ import {
     updateMyProfile,
     uploadMyAvatar,
     deleteMyAvatar,
+    verifyEmail,
+    resendVerificationEmail,
 } from "../controller/userController.js"
+import { sendTestEmail } from "../controller/emailTestController.js"
 import {protect} from "../middleware/authMiddleware.js"
 import {requireTrustedOrigin} from "../config/corsConfig.js"
 import uploadProfileAvatar from "../middleware/profileAvatarUpload.js"
@@ -18,6 +21,9 @@ import uploadProfileAvatar from "../middleware/profileAvatarUpload.js"
 const routes = express.Router()
 
 routes.post("/signup", registerUser)
+routes.post("/test-email", requireTrustedOrigin, sendTestEmail)
+routes.post("/verify-email", requireTrustedOrigin, verifyEmail)
+routes.post("/resend-verification", requireTrustedOrigin, resendVerificationEmail)
 routes.post("/signin", requireTrustedOrigin, userSignIn)
 routes.post("/refresh", requireTrustedOrigin, refreshSession)
 routes.post("/logout", requireTrustedOrigin, userLogout)

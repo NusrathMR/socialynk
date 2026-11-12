@@ -4,6 +4,11 @@ import jwt from "jsonwebtoken"
 import { createHash, randomBytes } from "node:crypto"
 import RefreshToken from "../models/refreshTokenModel.js"
 import cloudinary from "../config/cloudinary.js"
+import {
+    createVerificationToken,
+    hashVerificationToken,
+} from "../utils/emailVerification.js"
+import { sendVerificationEmail } from "../services/emailService.js"
 
 const REFRESH_COOKIE_NAME = "refreshToken"
 const REFRESH_TOKEN_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000
@@ -74,6 +79,9 @@ function getPublicUser(user) {
 }
 
 export const registerUser = async (req,res)=>{
+    let createdUserId = null
+    let normalizedEmail = ""
+
     try{
         const {email, password, confirmPassword, fullname } = req.body
 
@@ -89,25 +97,178 @@ export const registerUser = async (req,res)=>{
             return res.status(400).json({message:"Passwords don't match..."})
         }
 
-        const userExist = await User.findOne({email})
+        normalizedEmail = email.trim().toLowerCase()
+        const userExist = await User.findOne({email: normalizedEmail})
         if(userExist){
-            return res.status(400).json({message:"User already existed..."})
+            return res.status(400).json({
+                message: userExist.isEmailVerified
+                    ? "User already existed..."
+                    : "This email is already registered but not verified. Please use Resend verification email.",
+            })
         }
 
         const hashedPassword = await bcrypt.hash(password, 10)
 
         const userData = new User({
             fullname: fullname,
-            email: email,
+            email: normalizedEmail,
             password: hashedPassword
         })
 
         const saveUser = await userData.save()
-        res.status(200).json({message: "User registered successfully...",})
+        createdUserId = saveUser._id
+        const verificationToken = createVerificationToken()
+        saveUser.emailVerificationToken = verificationToken.tokenHash
+        saveUser.emailVerificationExpires = verificationToken.expiresAt
+        await saveUser.save()
 
-    }catch(error){
-        res.status(500).json({error: "Internal server error..."})
-        console.error(error)
+        let emailResult
+        try {
+            emailResult = await sendVerificationEmail(saveUser.email, verificationToken.rawToken)
+        } catch (error) {
+            console.error(
+                "Verification email could not be sent:",
+                error instanceof Error ? error.name : "UnexpectedError"
+            )
+            emailResult = { success: false }
+        }
+
+        if (!emailResult.success) {
+            try {
+                await User.deleteOne({ _id: createdUserId })
+                createdUserId = null
+            } catch (rollbackError) {
+                console.error(
+                    "Signup rollback failed:",
+                    rollbackError instanceof Error ? rollbackError.name : "UnexpectedError"
+                )
+                return res.status(500).json({
+                    message: "We couldn't send the verification email or remove the new account. Please contact support.",
+                })
+            }
+
+            return res.status(500).json({
+                message: "We couldn't send the verification email. Please check your email address and try again.",
+            })
+        }
+
+        createdUserId = null
+        return res.status(200).json({
+            message: "User registered successfully. Please check your email to verify your account.",
+        })
+    } catch(error) {
+        if (createdUserId) {
+            try {
+                await User.deleteOne({ _id: createdUserId })
+            } catch (rollbackError) {
+                console.error(
+                    "Signup rollback failed:",
+                    rollbackError instanceof Error ? rollbackError.name : "UnexpectedError"
+                )
+                return res.status(500).json({
+                    message: "We couldn't complete signup or remove the new account. Please contact support.",
+                })
+            }
+        }
+
+        if (error.code === 11000 && normalizedEmail) {
+            try {
+                const existingUser = await User.findOne({ email: normalizedEmail })
+                if (existingUser) {
+                    return res.status(400).json({
+                        message: existingUser.isEmailVerified
+                            ? "User already existed..."
+                            : "This email is already registered but not verified. Please use Resend verification email.",
+                    })
+                }
+            } catch (lookupError) {
+                console.error(
+                    "Duplicate account lookup failed:",
+                    lookupError instanceof Error ? lookupError.name : "UnexpectedError"
+                )
+            }
+        }
+
+        console.error("Signup failed:", error instanceof Error ? error.name : "UnexpectedError")
+        return res.status(500).json({message: "Could not create your account. Please try again."})
+    }
+}
+
+export const verifyEmail = async (req, res) => {
+    const { token } = req.body || {}
+    if (typeof token !== "string" || !token || token.length > 200) {
+        return res.status(400).json({ message: "A verification token is required." })
+    }
+
+    try {
+        const user = await User.findOne({
+            emailVerificationToken: hashVerificationToken(token),
+        }).select("+emailVerificationToken +emailVerificationExpires")
+
+        if (!user) {
+            return res.status(400).json({
+                code: "EMAIL_VERIFICATION_INVALID",
+                message: "This verification link is invalid or has already been used.",
+            })
+        }
+
+        if (user.isEmailVerified) {
+            return res.status(200).json({ message: "This email is already verified." })
+        }
+
+        if (!user.emailVerificationExpires || user.emailVerificationExpires <= new Date()) {
+            return res.status(400).json({
+                code: "EMAIL_VERIFICATION_EXPIRED",
+                message: "This verification link has expired. Request a new one.",
+            })
+        }
+
+        user.isEmailVerified = true
+        user.emailVerificationToken = undefined
+        user.emailVerificationExpires = undefined
+        await user.save()
+
+        return res.status(200).json({ message: "Email verified. You can now sign in." })
+    } catch (error) {
+        console.error("Email verification failed:", error instanceof Error ? error.name : "UnexpectedError")
+        return res.status(500).json({ message: "Could not verify your email. Please try again." })
+    }
+}
+
+export const resendVerificationEmail = async (req, res) => {
+    const email = req.body?.email
+    if (typeof email !== "string" || !email.trim()) {
+        return res.status(400).json({ message: "Enter the email address for your account." })
+    }
+
+    const message = "If an unverified account exists for that email, a verification link will be sent."
+
+    try {
+        const user = await User.findOne({
+            email: email.trim().toLowerCase(),
+        }).select("+emailVerificationToken +emailVerificationExpires")
+
+        if (user && !user.isEmailVerified) {
+            const previousToken = user.emailVerificationToken
+            const previousExpiry = user.emailVerificationExpires
+            const verificationToken = createVerificationToken()
+
+            user.emailVerificationToken = verificationToken.tokenHash
+            user.emailVerificationExpires = verificationToken.expiresAt
+            await user.save()
+
+            const emailResult = await sendVerificationEmail(user.email, verificationToken.rawToken)
+            if (!emailResult.success) {
+                user.emailVerificationToken = previousToken
+                user.emailVerificationExpires = previousExpiry
+                await user.save()
+            }
+        }
+
+        return res.status(200).json({ message })
+    } catch (error) {
+        console.error("Verification resend failed:", error instanceof Error ? error.name : "UnexpectedError")
+        return res.status(200).json({ message })
     }
 }
 
