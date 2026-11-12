@@ -8,7 +8,11 @@
     </title>
     <script>
       try {
-        const theme = localStorage.getItem("socialynk-theme")
+        const path = window.location.pathname.replace(/\/+$/, "") || "/"
+        const publicPaths = ["/", "/login", "/signup"]
+        const theme = publicPaths.includes(path)
+          ? "light"
+          : localStorage.getItem("socialynk-theme")
         document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light"
       } catch {
         document.documentElement.dataset.theme = "light"

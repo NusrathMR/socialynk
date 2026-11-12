@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react"
+import { useLayoutEffect, useState } from "react"
 import { updateMyTheme } from "../../api/api.js"
 import { useAuth } from "../AuthContext/authContext.jsx"
 import { ThemeContext } from "./themeContext.js"
+import { useLocation } from "react-router-dom"
+
+const publicPaths = new Set(["/", "/login", "/signup"])
 
 function getStoredTheme() {
   try {
@@ -16,23 +19,27 @@ function applyTheme(theme) {
 }
 
 export function ThemeProvider({ children }) {
-  const { user, updateUser } = useAuth()
+  const { user, isLoading, updateUser } = useAuth()
+  const location = useLocation()
   const [cachedTheme, setCachedTheme] = useState(getStoredTheme)
   const [previewTheme, setPreviewTheme] = useState(null)
-  const theme = previewTheme || (
-    user?.theme === "dark" || user?.theme === "light" ? user.theme : cachedTheme
-  )
+  const path = location.pathname.replace(/\/+$/, "") || "/"
+  const isForcedLight = publicPaths.has(path) || (!user && !isLoading)
+  const savedTheme = user?.theme === "dark" || user?.theme === "light"
+    ? user.theme
+    : cachedTheme
+  const theme = isForcedLight ? "light" : previewTheme || savedTheme
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     applyTheme(theme)
-    if (!previewTheme) {
+    if (!isForcedLight && !previewTheme) {
       try {
         localStorage.setItem("socialynk-theme", theme)
       } catch {
         // The theme still works for this page if browser storage is unavailable.
       }
     }
-  }, [theme, previewTheme])
+  }, [theme, previewTheme, isForcedLight])
 
   const saveTheme = async (nextTheme) => {
     if (!["light", "dark"].includes(nextTheme)) {
