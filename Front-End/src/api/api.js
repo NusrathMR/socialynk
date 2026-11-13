@@ -294,6 +294,18 @@ export async function getPublishedPosts() {
   return posts
 }
 
+export async function getDashboardStats() {
+  const response = await api.get("/dashboard", {
+    validateStatus: () => true,
+  })
+
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(response.data?.message || "Could not load dashboard stats.")
+  }
+
+  return response.data
+}
+
 export async function getRecentPosts() {
   const response = await api.get(
     "/posts?status=draft,scheduled,published,failed&sort=-updatedAt&limit=10",

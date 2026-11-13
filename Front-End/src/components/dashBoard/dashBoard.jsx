@@ -2,7 +2,7 @@ import "./dashBoard.css"
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext/authContext.jsx";
-import api from "../../api/api.js"
+import api, { getDashboardStats } from "../../api/api.js"
 import Sidebar from "../sideBar/sidebar.jsx";
 import TopBar from "../topBar/topBar.jsx";
 import ScheduleModal from "../scheduleModel/scheduleModel.jsx";
@@ -15,7 +15,7 @@ const PLATFORM_NAMES = { instagram: "Instagram", facebook: "Facebook", linkedin:
 function DashBoard(){
     const navigate = useNavigate();
     const { user, isLoading } = useAuth();
-    const [stats, setStats] = useState({ scheduled: 0, drafts: 0, pending: 0 });
+    const [stats, setStats] = useState({ scheduled: 0, drafts: 0, totalPublishedPosts: 0 });
     const [statsLoading, setStatsLoading] = useState(true);
     const [statsError, setStatsError] = useState(false);
     const [nextPost, setNextPost] = useState(null);
@@ -30,23 +30,18 @@ function DashBoard(){
 
     async function loadStats() {
         try {
-            const [scheduledResponse, draftsResponse] = await Promise.all([
+            const [scheduledResponse, draftsResponse, dashboardResponse] = await Promise.all([
                 api.get("/posts?status=scheduled,publishing&sort=scheduledAt&limit=50"),
                 api.get("/posts?status=draft&limit=1"),
+                getDashboardStats(),
             ]);
             const scheduledPosts = scheduledResponse.data.posts;
             setNextPost(scheduledPosts[0] || null);
-            const dueBy = Date.now() + 24 * 60 * 60 * 1000;
-            const pendingCount = scheduledPosts.filter((post) =>
-                (post.status === "scheduled" || post.status === "publishing") &&
-                post.scheduledAt &&
-                new Date(post.scheduledAt).getTime() <= dueBy
-            ).length;
 
             setStats({
                 scheduled: scheduledResponse.data.total,
                 drafts: draftsResponse.data.total,
-                pending: pendingCount === 50 && scheduledResponse.data.total > 50 ? "50+" : pendingCount,
+                totalPublishedPosts: dashboardResponse.totalPublishedPosts,
             });
             setStatsError(false);
         } catch (error) {
@@ -156,10 +151,10 @@ npm                         subtitle="Create. Edit. Publish. Grow. All in one pl
                     </div>
 
                     <div class="db-stat">
-                        <div class="db-stat-top"><span class="db-stat-icon">▤</span><span>···</span></div>
-                        <h2>{statsLoading || statsError ? "—" : stats.pending}</h2>
-                        <p>Pending Posts</p>
-                        <div class="db-stat-foot">Due in the next 24 hours</div>
+                        <div class="db-stat-top"><span class="db-stat-icon">✓</span><span>···</span></div>
+                        <h2>{statsLoading || statsError ? "—" : stats.totalPublishedPosts}</h2>
+                        <p>Total published posts</p>
+                        <div class="db-stat-foot">Published successfully</div>
                     </div>
                     </section>
                     {statsError && <p class="db-stats-error">Could not load</p>}
