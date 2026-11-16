@@ -87,15 +87,15 @@ function RecentPostsDropdown({ currentPostId, onUsePost }) {
 
   const visiblePosts = posts.filter((post) => {
     const postId = post._id || post.id
-    return postId !== currentPostId && post.caption?.trim()
+    return postId !== currentPostId && (post.contentText || post.caption)?.trim()
   })
 
-  const handleUsePost = (caption) => {
+  const handleUsePost = (post) => {
     if (useLockRef.current) return
 
     useLockRef.current = true
     setUsingPost(true)
-    onUsePost(caption)
+    onUsePost(post.contentText || post.caption || "", post.contentHtml)
     setOpen(false)
     useLockTimeoutRef.current = window.setTimeout(() => {
       useLockRef.current = false
@@ -133,7 +133,7 @@ function RecentPostsDropdown({ currentPostId, onUsePost }) {
             <p className="rp-state">No previous posts yet.</p>
           ) : (
             visiblePosts.map((post) => {
-              const captionLine = post.caption.replace(/\r\n?|\n/g, " ")
+              const captionLine = (post.contentText || post.caption || "").replace(/\r\n?|\n/g, " ")
               const preview = captionLine.length > 80 ? `${captionLine.slice(0, 80)}...` : captionLine
               const statusLabel = STATUS_LABELS[post.status]
 
@@ -150,7 +150,7 @@ function RecentPostsDropdown({ currentPostId, onUsePost }) {
                     type="button"
                     className="rp-use"
                     disabled={usingPost}
-                    onClick={() => handleUsePost(post.caption)}
+                    onClick={() => handleUsePost(post)}
                   >
                     Use in editor
                   </button>

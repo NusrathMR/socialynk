@@ -7,6 +7,8 @@ import TopBar from "../topBar/topBar.jsx"
 import AIAssistantModal from "../aiAssistant/aiAssistant.jsx"
 import ScheduleModal from "../scheduleModel/scheduleModel.jsx"
 import RecentPostsDropdown from "./recentPostsDropdown.jsx"
+import RichTextEditor from "./RichTextEditor.jsx"
+import { htmlToPlainText, plainTextToHtml, sanitizeRichTextHtml } from "../../utils/postContent.js"
 
 // The five content type cards. "id" must match the values the backend accepts.
 const CONTENT_TYPES = [
@@ -44,6 +46,7 @@ function CreatePage() {
 
   // What the editor holds
   const [caption, setCaption] = useState("")
+  const [contentHtml, setContentHtml] = useState("")
   const [contentType, setContentType] = useState("social_post")
   const [images, setImages] = useState([])
   const [uploadedImageIds, setUploadedImageIds] = useState(() => new Set())
@@ -55,6 +58,7 @@ function CreatePage() {
   const [postId, setPostId] = useState(null)        // null until the first save
   const lastSavedRef = useRef(JSON.stringify({
     caption: "",
+    contentHtml: "",
     contentType: "social_post",
     media: [],
   }))
@@ -158,13 +162,23 @@ function CreatePage() {
 
         const post = response.data.post
         const postMedia = post.media || []
+        const loadedHtml = post.contentHtml
+          ? sanitizeRichTextHtml(post.contentHtml)
+          : plainTextToHtml(post.caption || "")
+        const loadedText = typeof post.contentText === "string"
+          ? post.contentText
+          : loadedHtml
+            ? htmlToPlainText(loadedHtml)
+            : post.caption || ""
         lastSavedRef.current = JSON.stringify({
-          caption: post.caption,
+          caption: loadedText,
+          contentHtml: loadedHtml,
           contentType: post.contentType,
           media: postMedia,
         })
         setPostId(post._id)
-        setCaption(post.caption)
+        setCaption(loadedText)
+        setContentHtml(loadedHtml)
         setContentType(post.contentType)
         setImages(postMedia)
         setUploadedImageIds(new Set())
@@ -198,7 +212,14 @@ function CreatePage() {
     setErrorMessage("")
 
     try {
-      const body = { caption, contentType, media: images }
+      const savedHtml = contentHtml || plainTextToHtml(caption)
+      const body = {
+        caption,
+        contentHtml: savedHtml,
+        contentText: caption,
+        contentType,
+        media: images,
+      }
       let savedPost
 
       if (postId) {
@@ -210,7 +231,12 @@ function CreatePage() {
         setPostId(savedPost._id)       // remember it, so the next save updates
       }
 
-      lastSavedRef.current = JSON.stringify({ caption, contentType, media: images })
+      lastSavedRef.current = JSON.stringify({
+        caption,
+        contentHtml: savedHtml,
+        contentType,
+        media: images,
+      })
       setSaveStatus("saved")
       loadDrafts()                     // refresh the Recent Drafts panel
       return savedPost
@@ -221,11 +247,11 @@ function CreatePage() {
     } finally {
       savingRef.current = false
     }
-  }, [caption, contentType, images, postId, loadDrafts])
+  }, [caption, contentHtml, contentType, images, postId, loadDrafts])
 
   // ---------- Autosave changed content ----------
   useEffect(() => {
-    const current = JSON.stringify({ caption, contentType, media: images })
+    const current = JSON.stringify({ caption, contentHtml, contentType, media: images })
     if (current === lastSavedRef.current) return
     if (saveStatus === "saving") return
     if (saveStatus === "error") return
@@ -246,7 +272,7 @@ function CreatePage() {
       clearTimeout(timeout)
       if (autosaveTimeoutRef.current === timeout) autosaveTimeoutRef.current = null
     }
-  }, [caption, contentType, images, saveStatus, postId, saveDraft])
+  }, [caption, contentHtml, contentType, images, saveStatus, postId, saveDraft])
 
   // ---------- Start a blank draft ----------
   const handleNewDraft = () => {
@@ -259,11 +285,13 @@ function CreatePage() {
     }
     lastSavedRef.current = JSON.stringify({
       caption: "",
+      contentHtml: "",
       contentType: "social_post",
       media: [],
     })
     setPostId(null)
     setCaption("")
+    setContentHtml("")
     setContentType("social_post")
     setImages([])
     setUploadedImageIds(new Set())
@@ -275,9 +303,13 @@ function CreatePage() {
     setSearchParams({})
   }
 
-  const handleUsePreviousPost = (previousCaption) => {
+  const handleUsePreviousPost = (previousCaption, previousHtml) => {
     if (savingRef.current || saveStatus === "saving") return
 
+    const text = String(previousCaption || "")
+    const html = previousHtml
+      ? sanitizeRichTextHtml(previousHtml)
+      : plainTextToHtml(text)
     draftLoadGenerationRef.current += 1
     imageUploadGenerationRef.current += 1
     forceAutosaveRef.current = true
@@ -288,6 +320,7 @@ function CreatePage() {
 
     lastSavedRef.current = JSON.stringify({
       caption: "",
+      contentHtml: "",
       contentType,
       media: [],
     })
@@ -296,7 +329,8 @@ function CreatePage() {
     setUploadedImageIds(new Set())
     setUploading(false)
     setUploadError("")
-    setCaption(previousCaption)
+    setCaption(text)
+    setContentHtml(html)
     setSaveStatus("idle")
     setErrorMessage("")
     setSearchParams({})
@@ -388,7 +422,9 @@ function CreatePage() {
     }
   }
 
-  const visibleDrafts = drafts.filter((d) => d.caption && d.caption.trim() !== "")
+  const visibleDrafts = drafts.filter((draft) =>
+    (draft.contentText || draft.caption || "").trim() !== ""
+  )
 
   const handleFiles = async (fileList) => {
     const files = Array.from(fileList)
@@ -587,40 +623,25 @@ function CreatePage() {
 
                 {previousPostInfo && <p className="rp-info" role="status">{previousPostInfo}</p>}
 
-                <div className="cr-toolbar">
-                  <select>
-                    <option>Paragraph</option>
-                    <option>Heading 1</option>
-                    <option>Heading 2</option>
-                  </select>
-                  <span className="cr-sep"></span>
-                  <button type="button"><b>B</b></button>
-                  <button type="button"><i>I</i></button>
-                  <button type="button"><u>U</u></button>
-                  <span className="cr-sep"></span>
-                  <button type="button">☰</button>
-                  <button type="button">≡</button>
-                  <button type="button">⛓</button>
-                  <button type="button">☺</button>
-                  <button type="button" className="cr-hashtag"># Suggest Hashtags</button>
-                </div>
-
-                <textarea
+                <RichTextEditor
                   value={caption}
+                  htmlValue={contentHtml}
                   maxLength={2200}
-                  onChange={(e) => {
-                    setCaption(e.target.value)
+                  placeholder="Write your caption, idea or description here... Type '/' to quickly summon AI prompts or templates."
+                  onChange={(text, html) => {
+                    setCaption(text)
+                    setContentHtml(html)
                     if (saveStatus === "saved" || saveStatus === "error") setSaveStatus("idle")
                   }}
-                  placeholder="Write your caption, idea or description here... Type '/' to quickly summon AI prompts or templates."
-                ></textarea>
+                />
 
                 {showAI && (
                   <AIAssistantModal
                     onClose={() => setShowAI(false)}
                     onActiveMemoryChange={handleActiveMemoryChange}
                     onUseInEditor={(text) => {
-                      setCaption(text)      // put the AI text into the editor
+                      setCaption(text)
+                      setContentHtml(plainTextToHtml(text))
                       setShowAI(false)      // close the popup
                     }}
                   />
@@ -761,6 +782,22 @@ function CreatePage() {
             {/* Right column (Templates panel removed) */}
             <aside className="cr-right">
 
+              <div className="cr-panel">
+                <div className="cr-panel-head">
+                  <h3>▤ Post Preview</h3>
+                </div>
+                {caption.trim() ? (
+                  <div
+                    className="cr-live-preview"
+                    dangerouslySetInnerHTML={{
+                      __html: sanitizeRichTextHtml(contentHtml || plainTextToHtml(caption)),
+                    }}
+                  />
+                ) : (
+                  <p className="cr-empty">Your formatted post will appear here.</p>
+                )}
+              </div>
+
               {/* Recent drafts: now real data */}
               <div className="cr-panel">
                 <div className="cr-panel-head">
@@ -783,7 +820,7 @@ function CreatePage() {
                     >
                       <span className="cr-draft-icon">▤</span>
                       <div>
-                        <strong>{draftTitle(draft.caption)}</strong>
+                        <strong>{draftTitle(draft.contentText || draft.caption || "")}</strong>
                         <small>Edited {timeAgo(draft.updatedAt)}</small>
                       </div>
                       <button

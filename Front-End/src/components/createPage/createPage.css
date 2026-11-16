@@ -898,5 +898,25 @@
 .cr-draft { cursor: pointer; }
 button.cr-dots { background: none; border: none; font-size: 14px; color: inherit; cursor: pointer; }
 
+.cr-live-preview {
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.cr-live-preview > :first-child {
+  margin-top: 0;
+}
+
+.cr-live-preview > :last-child {
+  margin-bottom: 0;
+}
+
+.cr-live-preview ul,
+.cr-live-preview ol {
+  padding-left: 1.5rem;
+}
+
 /* Content type cards are clickable */
 .cr-type { cursor: pointer; }

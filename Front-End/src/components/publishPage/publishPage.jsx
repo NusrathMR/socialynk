@@ -4,6 +4,7 @@ import api from "../../api/api.js";
 import Sidebar from "../sideBar/sidebar.jsx";
 import TopBar from "../topBar/topBar.jsx";
 import ScheduleModal from "../scheduleModel/scheduleModel.jsx";
+import { plainTextToHtml, sanitizeRichTextHtml } from "../../utils/postContent.js";
 import "./publishPage.css";
 
 const tabs = ["Schedule", "Drafts", "Sent"];
@@ -33,7 +34,10 @@ function toCard(post) {
   const when = new Date(post.status === "published"
     ? post.publishedAt || post.scheduledAt || post.updatedAt
     : post.scheduledAt || post.updatedAt);
-  const caption = post.caption || "";
+  const caption = post.contentText || post.caption || "";
+  const contentHtml = post.contentHtml
+    ? sanitizeRichTextHtml(post.contentHtml)
+    : plainTextToHtml(caption);
 
   return {
     id: post._id,
@@ -42,6 +46,7 @@ function toCard(post) {
     time: when.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
     title: caption ? (caption.length > 60 ? caption.slice(0, 60) + "..." : caption) : "Untitled post",
     text: caption,
+    contentHtml,
     status: STATUS_LABELS[post.status] || post.status,
     icons: post.platforms.map((platform) => PLATFORM_ICONS[platform]).filter(Boolean).join(" "),
     img: null,
@@ -376,7 +381,14 @@ function PublishPage() {
                     <span className="pb-preview-dots">···</span>
                   </div>
 
-                  <p>{selectedPost.text}</p>
+                  <div
+                    className="pb-preview-content"
+                    dangerouslySetInnerHTML={{
+                      __html: sanitizeRichTextHtml(
+                        selectedPost.contentHtml || plainTextToHtml(selectedPost.text)
+                      ),
+                    }}
+                  />
                   {selectedPost.rawStatus === "failed" && selectedPost.publishError && (
                     <p className="pb-error">{selectedPost.publishError}</p>
                   )}
