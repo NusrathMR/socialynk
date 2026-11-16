@@ -193,7 +193,6 @@ function AiAssistant({ onClose, onUseInEditor, onActiveMemoryChange }) {
             <h2>AI Assistant <small className="ai-version">v2.4 Turbo</small></h2>
             <p>Create better social content with AI.</p>
           </div>
-          <span className="ai-credits">⚡ AI Credits: 42 remaining</span>
           <button className="ai-close" onClick={onClose}>&times;</button>
         </header>
 
