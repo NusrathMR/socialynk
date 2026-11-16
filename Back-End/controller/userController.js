@@ -81,12 +81,16 @@ export const registerUser = async (req,res)=>{
             return res.status(400).json({message:"All fields are required..."})
         }
 
-        if (password.length<6){
-            return res.status(400).json({message:"Password should have 6 characters..."})
+        if (
+            typeof password !== "string" ||
+            typeof confirmPassword !== "string" ||
+            password !== confirmPassword
+        ){
+            return res.status(400).json({message:"Passwords do not match."})
         }
 
-        if (password !== confirmPassword){
-            return res.status(400).json({message:"Passwords don't match..."})
+        if (password.length<6){
+            return res.status(400).json({message:"Password should have 6 characters..."})
         }
 
         const userExist = await User.findOne({email})

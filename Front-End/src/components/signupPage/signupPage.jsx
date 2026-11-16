@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import PasswordInput from "../passwordInput/PasswordInput.jsx"
 import "./signupPage.css"
-import { useState } from "react";
+import { useRef, useState } from "react";
 import api from "../../api/api.js"
 import { useNavigate } from "react-router-dom";
 
@@ -11,6 +11,7 @@ function SignupPage(){
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
+    const [confirmPasswordError, setConfirmPasswordError] = useState("")
     const [message, setMessage] = useState("")
     const [status, setStatus] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -18,12 +19,42 @@ function SignupPage(){
     const [termsError, setTermsError] = useState("")
 
     const navigate = useNavigate()
+    const confirmPasswordRef = useRef(null)
+    const termsInputRef = useRef(null)
+
+    function validatePasswords(password, confirmPassword) {
+        if (!confirmPassword || password !== confirmPassword) {
+            return "Passwords don't match..."
+        }
+
+        return ""
+    }
+
+    function handlePasswordChange(event) {
+        const nextPassword = event.target.value
+        setPassword(nextPassword)
+        setConfirmPasswordError(validatePasswords(nextPassword, confirmPassword))
+    }
+
+    function handleConfirmPasswordChange(event) {
+        const nextConfirmPassword = event.target.value
+        setConfirmPassword(nextConfirmPassword)
+        setConfirmPasswordError(validatePasswords(password, nextConfirmPassword))
+    }
 
     const handleCreateAccount = async (event)=>{
 
         event.preventDefault()
+        const passwordError = validatePasswords(password, confirmPassword)
+        setConfirmPasswordError(passwordError)
+        if (passwordError) {
+            confirmPasswordRef.current?.focus()
+            return
+        }
+
         if (!acceptedTerms) {
             setTermsError("Please accept the terms and conditions.")
+            termsInputRef.current?.focus()
             return
         }
 
@@ -123,7 +154,7 @@ function SignupPage(){
 
                         <label for="password">PASSWORD</label>
                         <div class="su-field">
-                        <PasswordInput id="password" placeholder="password123" value={password} onChange={(event)=>setPassword(event.target.value)} required/>
+                        <PasswordInput id="password" placeholder="password123" value={password} onChange={handlePasswordChange} required/>
                         </div>
 
                         {/* <div class="su-strength-head">
@@ -143,13 +174,27 @@ function SignupPage(){
 
                         <label for="confirm">CONFIRM PASSWORD</label>
                         <div class="su-field">
-                        <PasswordInput id="confirm" placeholder="password123" value={confirmPassword} onChange={(event)=>setConfirmPassword(event.target.value)} required/>
+                        <PasswordInput
+                            id="confirm"
+                            placeholder="password123"
+                            value={confirmPassword}
+                            onChange={handleConfirmPasswordChange}
+                            ref={confirmPasswordRef}
+                            aria-invalid={confirmPasswordError ? "true" : "false"}
+                            aria-describedby={confirmPasswordError ? "confirm-password-error" : undefined}
+                        />
                         </div>
+                        {confirmPasswordError && (
+                        <div id="confirm-password-error" className="su-message error" role="alert">
+                            {confirmPasswordError}
+                        </div>
+                        )}
 
                         <label className="su-agree" htmlFor="accepted-terms">
                         <input
                             id="accepted-terms"
                             type="checkbox"
+                            ref={termsInputRef}
                             checked={acceptedTerms}
                             aria-invalid={termsError ? "true" : "false"}
                             aria-describedby={termsError ? "terms-error" : undefined}
