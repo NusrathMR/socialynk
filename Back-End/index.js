@@ -14,6 +14,7 @@ import adminSettingsRoute from "./routes/adminSettingsRoute.js"
 import brandMemoryRoute from "./routes/brandMemoryRoute.js"
 import dashboardRoute from "./routes/dashboardRoute.js"
 import searchRoute from "./routes/searchRoute.js"
+import notificationRoute from "./routes/notificationRoute.js"
 import {corsOptions} from "./config/corsConfig.js"
 
 
@@ -37,6 +38,7 @@ app.use("/api/admin/settings", adminSettingsRoute)
 app.use("/api/brand-memory", brandMemoryRoute)
 app.use("/api/dashboard", dashboardRoute)
 app.use("/api/search", searchRoute)
+app.use("/api/notifications", notificationRoute)
 
 
 app.listen(PORT, ()=>{

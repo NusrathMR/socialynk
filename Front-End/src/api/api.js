@@ -333,6 +333,90 @@ export async function searchWorkspace(query, signal) {
   return response.data.results
 }
 
+export async function getNotifications(page = 1, limit = 20) {
+  const response = await api.get("/notifications", {
+    params: { page, limit },
+    validateStatus: () => true,
+  })
+
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(response.data?.message || "Could not load notifications.")
+  }
+
+  return response.data
+}
+
+export async function markNotificationRead(id) {
+  const response = await api.patch(
+    `/notifications/${encodeURIComponent(id)}/read`,
+    {},
+    { validateStatus: () => true }
+  )
+
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(response.data?.message || "Could not mark the notification as read.")
+  }
+
+  return response.data
+}
+
+export async function markAllNotificationsRead() {
+  const response = await api.patch("/notifications/read-all", {}, {
+    validateStatus: () => true,
+  })
+
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(response.data?.message || "Could not mark notifications as read.")
+  }
+
+  return response.data
+}
+
+export async function openNotificationStream(signal) {
+  async function connect() {
+    return fetch(`${BASE_URL}/notifications/stream`, {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      credentials: "include",
+      signal,
+    })
+  }
+
+  let response = await connect()
+  if (response.status === 401) {
+    try {
+      await requestRefresh()
+    } catch (error) {
+      if (!signal?.aborted && [401, 403].includes(error.response?.status)) {
+        clearAccessToken()
+        window.dispatchEvent(new Event("auth:session-expired"))
+      }
+      throw error
+    }
+    if (signal?.aborted) {
+      const error = new Error("Notification stream request was cancelled.")
+      error.name = "AbortError"
+      throw error
+    }
+    response = await connect()
+  }
+
+  if (!response.ok) {
+    if (signal?.aborted) {
+      const error = new Error("Notification stream request was cancelled.")
+      error.name = "AbortError"
+      throw error
+    }
+    if (response.status === 401 || response.status === 403) {
+      clearAccessToken()
+      window.dispatchEvent(new Event("auth:session-expired"))
+    }
+    throw new Error(response.status === 401 || response.status === 403
+      ? "Your session has expired."
+      : "Could not connect to live notifications.")
+  }
+  return response
+}
+
 export async function getBrandMemory() {
   const response = await api.get("/brand-memory", {
     validateStatus: () => true,

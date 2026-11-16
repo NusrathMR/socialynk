@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { searchWorkspace } from "../../api/api.js";
 import "./topBar.css";
 import ProfileMenu from "../profileMenu/profileMenu.jsx"
+import NotificationBell from "../notificationBell/notificationBell.jsx"
 
 function TopBar({
   title,
@@ -203,9 +204,7 @@ function TopBar({
             </div>
           )}
         </div>
-        <button type="button" className="top-bar-bell" aria-label="Notifications">
-          🔔
-        </button>
+        <NotificationBell />
 
         <ProfileMenu direction="down" align="right" />
         
