@@ -13,6 +13,7 @@ import adminDashboardRoute from "./routes/adminDashboardRoute.js"
 import adminSettingsRoute from "./routes/adminSettingsRoute.js"
 import brandMemoryRoute from "./routes/brandMemoryRoute.js"
 import dashboardRoute from "./routes/dashboardRoute.js"
+import searchRoute from "./routes/searchRoute.js"
 import {corsOptions} from "./config/corsConfig.js"
 
 
@@ -35,6 +36,7 @@ app.use("/api/admin/dashboard", adminDashboardRoute)
 app.use("/api/admin/settings", adminSettingsRoute)
 app.use("/api/brand-memory", brandMemoryRoute)
 app.use("/api/dashboard", dashboardRoute)
+app.use("/api/search", searchRoute)
 
 
 app.listen(PORT, ()=>{

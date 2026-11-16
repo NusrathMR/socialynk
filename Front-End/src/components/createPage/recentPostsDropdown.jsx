@@ -115,7 +115,7 @@ function RecentPostsDropdown({ currentPostId, onUsePost }) {
         aria-controls="rp-posts-panel"
         onClick={handleTriggerClick}
       >
-        Use a previous post ⌄
+        Use a previous post
       </button>
 
       {open && (

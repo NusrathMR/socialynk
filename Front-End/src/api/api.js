@@ -319,6 +319,20 @@ export async function getRecentPosts() {
   return response.data.posts
 }
 
+export async function searchWorkspace(query, signal) {
+  const response = await api.get("/search", {
+    params: { q: query },
+    signal,
+    validateStatus: () => true,
+  })
+
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(response.data?.message || "Could not search your workspace.")
+  }
+
+  return response.data.results
+}
+
 export async function getBrandMemory() {
   const response = await api.get("/brand-memory", {
     validateStatus: () => true,
