@@ -71,7 +71,7 @@ function SimulatorPage() {
   }
 
   return (
-    <div className="db-layout">
+    <div className="db-layout sim-layout">
       <Sidebar />
 
       <main className="sim-main">
