@@ -1,5 +1,5 @@
+import "./config/loadEnv.js"
 import express from "express"
-import "dotenv/config"
 import bodyParser from "body-parser"
 import connectDb from "./config/db.js"
 import userRoute from "./routes/userRoute.js"

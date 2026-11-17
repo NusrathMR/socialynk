@@ -13,6 +13,7 @@ const PLATFORM_NAMES = {
   linkedin: "LinkedIn",
   tiktok: "TikTok",
   x: "X",
+  youtube: "YouTube",
 }
 
 let isRunning = false                     // stops two checks from overlapping

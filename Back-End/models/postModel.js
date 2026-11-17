@@ -59,6 +59,29 @@ const postSchema = new mongoose.Schema(
                 error: { type: String, default: "" },
             },
         ],
+        sandboxSyncStatus: {
+            type: String,
+            enum: ["pending", "synced", "failed", "disabled"],
+            default: "disabled",
+        },
+        sandboxSyncedAt: { type: Date, default: null },
+        sandboxSyncError: { type: String, default: "" },
+        sandboxSyncResults: [
+            {
+                platform: {
+                    type: String,
+                    enum: ["instagram", "facebook", "linkedin", "tiktok", "x", "youtube"],
+                },
+                status: {
+                    type: String,
+                    enum: ["pending", "synced", "failed", "disabled"],
+                    default: "pending",
+                },
+                attempts: { type: Number, default: 0 },
+                syncedAt: { type: Date, default: null },
+                error: { type: String, default: "" },
+            },
+        ],
         media: [
             {
                 url: String,

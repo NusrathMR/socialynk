@@ -7,6 +7,7 @@ const channelList = [
   { id: "linkedin", name: "LinkedIn", detail: "Socialynk Enterprise Suite", icon: "in", connected: true },
   { id: "x", name: "X (Twitter)", detail: "@socialynk", icon: "X", mono: true },
   { id: "tiktok", name: "TikTok", detail: "@socialynk_global", icon: "♪", mono: true },
+  { id: "youtube", name: "YouTube", detail: "Socialynk Channel", icon: "▶", mono: true },
 ];
 
 // "2026-09-30" -> "30 Sep 2026"

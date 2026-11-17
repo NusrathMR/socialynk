@@ -33,7 +33,7 @@ await run("4. No channels", {
 await run("5. Unsupported channel", {
   _id: "test5",
   caption: "Hello",
-  platforms: ["youtube"],
+  platforms: ["unsupported"],
 })
 
 await run("6. Retry only the failed one", {

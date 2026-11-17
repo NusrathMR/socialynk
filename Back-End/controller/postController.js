@@ -1,12 +1,13 @@
 import mongoose from "mongoose"
 import Post from "../models/postModel.js"
 import { publishAndSave } from "../services/publisherServices.js"
+import { syncPostToSandbox } from "../services/fakeSocialService.js"
 
 // The ONLY fields a client may send. Anything else is ignored.
 const ALLOWED_FIELDS = ["caption", "hashtags", "contentType", "platforms", "branding", "media"]
 const STATUSES = ["draft", "scheduled", "publishing", "published", "failed"]
 const SORTS = ["updatedAt", "-updatedAt", "scheduledAt", "-scheduledAt", "publishedAt", "-publishedAt"]
-const PLATFORMS = ["instagram", "facebook", "linkedin", "tiktok", "x"]
+const PLATFORMS = ["instagram", "facebook", "linkedin", "tiktok", "x", "youtube"]
 const PUBLISHABLE = ["draft", "scheduled", "failed"]
 const ONE_MINUTE = 60 * 1000
 const ONE_YEAR = 365 * 24 * 60 * 60 * 1000
@@ -73,7 +74,7 @@ export const getMyPosts = async (req, res) => {
         .sort(sort)
         .skip((page - 1) * limit)
         .limit(limit)
-        .select("contentType caption hashtags media status platforms scheduledAt publishedAt publishError publishAttempts platformResults createdAt updatedAt")
+        .select("contentType caption hashtags media status platforms scheduledAt publishedAt publishError publishAttempts platformResults sandboxSyncStatus sandboxSyncedAt sandboxSyncError sandboxSyncResults createdAt updatedAt")
         .lean(),
       Post.countDocuments(filter),
     ])
@@ -268,6 +269,39 @@ export const publishNow = async (req, res) => {
         : `Publishing failed: ${post.publishError}`
 
     res.status(200).json({ message, post })
+  } catch (error) {
+    handleError(error, res)
+  }
+}
+
+export const retrySandboxSync = async (req, res) => {
+  try {
+    const post = await findMyPost(req.params.id, req.user._id)
+    if (!post) {
+      return res.status(404).json({ message: "Post not found..." })
+    }
+    if (post.status !== "published") {
+      return res.status(409).json({ message: "Only successfully published posts can be synced..." })
+    }
+
+    const result = await syncPostToSandbox(post._id, { retryFailed: true })
+    if (result.status === "disabled") {
+      return res.status(409).json({
+        message: "Sandbox synchronization is disabled. The Socialynk post remains published.",
+        post: result.post,
+      })
+    }
+    if (result.status === "failed") {
+      return res.status(502).json({
+        message: "Sandbox synchronization failed. The Socialynk post remains published.",
+        post: result.post,
+      })
+    }
+    if (result.status !== "synced") {
+      return res.status(409).json({ message: "This post cannot be synchronized right now..." })
+    }
+
+    return res.status(200).json({ message: "Post synchronized to Sandbox Social.", post: result.post })
   } catch (error) {
     handleError(error, res)
   }

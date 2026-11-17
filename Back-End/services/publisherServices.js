@@ -1,4 +1,5 @@
 import Post from "../models/postModel.js"
+import { prepareSandboxSync, syncPostToSandbox } from "./fakeSocialService.js"
 
 // How long the fake publishing "takes"
 const SIMULATED_DELAY_MS = 500
@@ -32,6 +33,8 @@ const adapters = {
   linkedin: simulatedAdapter,
   tiktok: simulatedAdapter,
   x: simulatedAdapter,
+  youtube: simulatedAdapter,
+  fakeSocialAdapter: (post) => syncPostToSandbox(post._id),
 }
 
 // ---------- Publish to ONE platform (never throws) ----------
@@ -102,8 +105,11 @@ export const publishAndSave = async (post) => {
       post.publishError = failed.map((r) => `${r.platform}: ${r.error}`).join("; ")
     }
 
+    if (post.status === "published") {
+      prepareSandboxSync(post)
+    }
+
     await post.save()
-    return post
   } catch (error) {
     // Something unexpected: do not leave the post stuck in "publishing"
     console.error("[publisher] unexpected error:", error)
@@ -115,4 +121,14 @@ export const publishAndSave = async (post) => {
     post.publishError = "Unexpected error while publishing..."
     return post
   }
+
+  if (post.status === "published") {
+    void adapters.fakeSocialAdapter(post).catch((error) => {
+      console.error(
+        `[publisher] Sandbox sync task failed for post ${post._id}: ${error?.name || "Unexpected error"}`
+      )
+    })
+  }
+
+  return post
 }

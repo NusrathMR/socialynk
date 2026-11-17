@@ -8,7 +8,8 @@ import {
   deletePost,
   schedulePost,
   unschedulePost,
-  publishNow
+  publishNow,
+  retrySandboxSync,
 } from "../controller/postController.js"
 
 
@@ -26,5 +27,6 @@ route.delete("/:id", deletePost)
 route.patch("/:id/schedule", schedulePost)
 route.patch("/:id/unschedule", unschedulePost)
 route.post("/:id/publish-now", publishNow)
+route.post("/:id/sandbox-sync/retry", retrySandboxSync)
 
 export default route

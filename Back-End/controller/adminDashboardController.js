@@ -4,7 +4,7 @@ import Post from "../models/postModel.js"
 
 const USER_PLANS = ["free", "starter", "pro", "business"]
 const POST_STATUSES = ["draft", "scheduled", "publishing", "published", "failed"]
-const PLATFORMS = ["instagram", "facebook", "linkedin", "x", "tiktok"]
+const PLATFORMS = ["instagram", "facebook", "linkedin", "x", "tiktok", "youtube"]
 
 const countByKeys = (rows, keys) =>
   Object.fromEntries(keys.map((key) => [

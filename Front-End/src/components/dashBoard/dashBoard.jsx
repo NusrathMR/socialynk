@@ -9,8 +9,8 @@ import ScheduleModal from "../scheduleModel/scheduleModel.jsx";
 import { getFirstName } from "../../utils/getFirstName.js";
 import { getGreeting } from "../../utils/getGreeting.js";
 
-const PLATFORM_ICONS = { instagram: "◎", facebook: "👍", linkedin: "▣", x: "#", tiktok: "♪" };
-const PLATFORM_NAMES = { instagram: "Instagram", facebook: "Facebook", linkedin: "LinkedIn", x: "X", tiktok: "TikTok" };
+const PLATFORM_ICONS = { instagram: "◎", facebook: "👍", linkedin: "▣", x: "#", tiktok: "♪", youtube: "▶" };
+const PLATFORM_NAMES = { instagram: "Instagram", facebook: "Facebook", linkedin: "LinkedIn", x: "X", tiktok: "TikTok", youtube: "YouTube" };
 
 function DashBoard(){
     const navigate = useNavigate();

@@ -4,7 +4,7 @@ function apiKeyAuth(req, res, next) {
   const expectedKey = process.env.FAKE_SOCIAL_API_KEY;
   const providedKey = req.get('x-api-key');
 
-  if (!expectedKey) {
+  if (typeof expectedKey !== 'string' || expectedKey.trim().length === 0) {
     return res.status(500).json({
       success: false,
       message: 'Publishing authentication is not configured on the server.',

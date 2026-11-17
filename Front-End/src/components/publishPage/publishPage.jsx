@@ -9,8 +9,8 @@ import "./publishPage.css";
 
 const tabs = ["Schedule", "Drafts", "Sent"];
 
-const PLATFORM_ICONS = { instagram: "◎", facebook: "👍", linkedin: "▣", x: "#", tiktok: "♪" };
-const PLATFORM_NAMES = { instagram: "Instagram", facebook: "Facebook", linkedin: "LinkedIn", x: "X", tiktok: "TikTok" };
+const PLATFORM_ICONS = { instagram: "◎", facebook: "👍", linkedin: "▣", x: "#", tiktok: "♪", youtube: "▶" };
+const PLATFORM_NAMES = { instagram: "Instagram", facebook: "Facebook", linkedin: "LinkedIn", x: "X", tiktok: "TikTok", youtube: "YouTube" };
 const STATUS_LABELS = { draft: "Draft", scheduled: "Scheduled", publishing: "Publishing", published: "Sent", failed: "Failed" };
 
 function formatPreviewDate(value) {
