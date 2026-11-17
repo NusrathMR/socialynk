@@ -1,0 +1,2 @@
+import { Actions, Caption, Header, MediaRenderer, PreviewFrame, Timestamp } from './common.jsx';
+export default function FacebookPost({ post }) { return <PreviewFrame platform="facebook"><Header post={post} subtitle={<><Timestamp post={post} />{post.audience ? ` · ${post.audience}` : ''}</>} /><Caption post={post} /><MediaRenderer post={post} fit="contain" />{post.likeCount != null && <div className="preview-small">{post.likeCount.toLocaleString()} reactions</div>}<Actions items={['Like', 'Comment', 'Share']} /></PreviewFrame>; }

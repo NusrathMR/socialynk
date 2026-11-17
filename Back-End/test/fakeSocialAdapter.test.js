@@ -1,12 +1,13 @@
 import assert from "node:assert/strict"
 import test from "node:test"
-import { fakeSocialAdapter, mapSandboxPlatform } from "../services/fakeSocialAdapter.js"
+import { createSandboxPayload, fakeSocialAdapter, mapSandboxPlatform } from "../services/fakeSocialAdapter.js"
 
 const payload = {
   platform: "instagram",
   text: "A published caption",
   authorName: "Socialynk User",
   sourcePostId: "socialynk-post-123",
+  media: [],
 }
 
 const options = {
@@ -21,6 +22,29 @@ test("maps all Socialynk platforms to Sandbox platform names", () => {
     ["instagram", "facebook", "linkedin", "twitter", "tiktok", "youtube"]
   )
   assert.equal(mapSandboxPlatform("unknown"), null)
+})
+
+test("forwards original Cloudinary URLs and permits image-only posts", () => {
+  const cloudinaryUrl = "https://res.cloudinary.com/example/image/upload/v123/socialynk/photo.jpg"
+  const result = createSandboxPayload({
+    _id: "post-with-image",
+    caption: "",
+    media: [{ url: cloudinaryUrl, width: 1600, height: 900, publicId: "kept-private" }],
+  }, "instagram")
+
+  assert.equal(result.error, undefined)
+  assert.deepEqual(result.payload.media, [{
+    url: cloudinaryUrl,
+    type: "image",
+    width: 1600,
+    height: 900,
+  }])
+  assert.equal(result.payload.text, "")
+})
+
+test("drops invalid saved media URLs and requires text or valid media", () => {
+  const result = createSandboxPayload({ _id: "textless", caption: "", media: [{ url: "javascript:alert(1)" }] }, "instagram")
+  assert.equal(result.error, "Published post content is empty.")
 })
 
 test("sends the expected payload and treats a duplicate response as synced", async () => {

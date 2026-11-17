@@ -1,0 +1,2 @@
+import { Actions, Caption, Header, MediaRenderer, PreviewFrame, Timestamp } from './common.jsx';
+export default function LinkedInPost({ post }) { return <PreviewFrame platform="linkedin"><Header post={post} subtitle={<>{post.headline || ' ' }<br /><Timestamp post={post} /> · 🌐</>} /><Caption post={post} /><MediaRenderer post={post} fit="contain" /><Actions items={['Like', 'Comment', 'Repost', 'Send']} /></PreviewFrame>; }

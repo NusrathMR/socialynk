@@ -3,11 +3,49 @@ const Post = require('../models/Post');
 
 const PLATFORMS = ['instagram', 'facebook', 'linkedin', 'twitter', 'tiktok', 'youtube'];
 
+function normalizeMedia(body) {
+  const rawMedia = [
+    ...(Array.isArray(body.media) ? body.media : body.media ? [body.media] : []),
+    ...(Array.isArray(body.images) ? body.images : body.images ? [body.images] : []),
+    ...(Array.isArray(body.attachments) ? body.attachments : body.attachments ? [body.attachments] : []),
+  ];
+  const aliases = [body.imageUrl, body.mediaUrl, body.thumbnailUrl].filter(Boolean);
+  const entries = [...rawMedia, ...aliases];
+  const media = [];
+  for (const entry of entries) {
+    const item = typeof entry === 'string' ? { url: entry } : entry;
+    const url = item?.url || item?.imageUrl || item?.mediaUrl || item?.src;
+    if (typeof url !== 'string' || !url.trim()) continue;
+    let parsed;
+    try { parsed = new URL(url); } catch { return { error: 'Media URLs must be absolute HTTP or HTTPS URLs.' }; }
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return { error: 'Media URLs must use HTTP or HTTPS.' };
+    }
+    if (!media.some((existing) => existing.url === url.trim())) {
+      media.push({
+        url: url.trim(),
+        type: item.type || item.mediaType || body.mediaType || '',
+        alt: item.alt || item.altText || '',
+        width: Number.isFinite(Number(item.width)) && item.width !== undefined ? Number(item.width) : undefined,
+        height: Number.isFinite(Number(item.height)) && item.height !== undefined ? Number(item.height) : undefined,
+        thumbnailUrl: item.thumbnailUrl || undefined,
+        title: item.title || undefined,
+        duration: item.duration || undefined,
+      });
+    }
+  }
+  if (media.length > 20) return { error: 'A post can contain at most 20 media items.' };
+  return { media };
+}
+
 async function createPost(req, res, next) {
   const { platform, text, authorName, sourcePostId } = req.body || {};
-  const missingFields = ['platform', 'text', 'authorName', 'sourcePostId'].filter(
+  const missingFields = ['platform', 'authorName', 'sourcePostId'].filter(
     (field) => typeof req.body?.[field] !== 'string' || !req.body[field].trim(),
   );
+  if (req.body?.text !== undefined && typeof req.body.text !== 'string') {
+    return res.status(400).json({ success: false, message: 'text must be a string when provided.' });
+  }
 
   if (missingFields.length) {
     return res.status(400).json({
@@ -26,12 +64,37 @@ async function createPost(req, res, next) {
     });
   }
 
+  const normalizedMedia = normalizeMedia(req.body);
+  if (normalizedMedia.error) {
+    return res.status(400).json({ success: false, message: normalizedMedia.error });
+  }
+
   try {
     const post = await Post.create({
       platform: normalizedPlatform,
-      text: text.trim(),
+      text: typeof text === 'string' ? text.trim() : '',
       authorName: authorName.trim(),
       sourcePostId: sourcePostId.trim(),
+      originalPostId: typeof req.body.originalPostId === 'string' ? req.body.originalPostId.trim() : undefined,
+      media: normalizedMedia.media,
+      imageUrl: typeof req.body.imageUrl === 'string' ? req.body.imageUrl.trim() : undefined,
+      mediaUrl: typeof req.body.mediaUrl === 'string' ? req.body.mediaUrl.trim() : undefined,
+      mediaType: typeof req.body.mediaType === 'string' ? req.body.mediaType.trim() : undefined,
+      thumbnailUrl: typeof req.body.thumbnailUrl === 'string' ? req.body.thumbnailUrl.trim() : undefined,
+      displayName: typeof req.body.displayName === 'string' ? req.body.displayName.trim() : undefined,
+      username: typeof req.body.username === 'string' ? req.body.username.trim() : undefined,
+      profileImageUrl: typeof req.body.profileImageUrl === 'string' ? req.body.profileImageUrl.trim() : undefined,
+      headline: typeof req.body.headline === 'string' ? req.body.headline.trim() : undefined,
+      audience: typeof req.body.audience === 'string' ? req.body.audience.trim() : undefined,
+      verified: typeof req.body.verified === 'boolean' ? req.body.verified : undefined,
+      title: typeof req.body.title === 'string' ? req.body.title.trim() : undefined,
+      duration: typeof req.body.duration === 'string' ? req.body.duration.trim() : undefined,
+      viewCount: Number.isFinite(Number(req.body.viewCount)) && req.body.viewCount !== undefined
+        ? Number(req.body.viewCount)
+        : undefined,
+      likeCount: Number.isFinite(Number(req.body.likeCount)) && req.body.likeCount !== undefined
+        ? Number(req.body.likeCount)
+        : undefined,
     });
 
     return res.status(201).json({

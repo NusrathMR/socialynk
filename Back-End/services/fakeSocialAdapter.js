@@ -59,15 +59,34 @@ export function createSandboxPayload(post, platform) {
       .filter((tag) => !captionHashtags.has(tag.toLowerCase()))
     : []
   const text = [caption, ...hashtags].filter(Boolean).join(" ").trim()
+  const media = Array.isArray(post?.media)
+    ? post.media
+      .filter((item) => item && typeof item.url === "string")
+      .filter((item) => {
+        try {
+          const url = new URL(item.url)
+          return url.protocol === "https:" || url.protocol === "http:"
+        } catch {
+          return false
+        }
+      })
+      .map((item) => ({
+        url: item.url,
+        type: "image",
+        ...(Number.isFinite(item.width) ? { width: item.width } : {}),
+        ...(Number.isFinite(item.height) ? { height: item.height } : {}),
+      }))
+    : []
 
   if (!mappedPlatform) return { error: "Unsupported Socialynk platform." }
   if (!sourcePostId) return { error: "Published post ID is missing." }
-  if (!text) return { error: "Published post content is empty." }
+  if (!text && media.length === 0) return { error: "Published post content is empty." }
 
   return {
     payload: {
       platform: mappedPlatform,
       text,
+      media,
       authorName: "Socialynk User",
       sourcePostId,
     },
@@ -77,8 +96,20 @@ export function createSandboxPayload(post, platform) {
 function validatePayload(payload) {
   if (!payload || typeof payload !== "object") return "Post payload is missing."
   if (!SANDBOX_PLATFORMS.has(payload.platform)) return "Unsupported Sandbox platform."
-  if (typeof payload.text !== "string" || !payload.text.trim() || payload.text.length > 10000) {
-    return "Post text must be a non-empty string of at most 10000 characters."
+  if (typeof payload.text !== "string" || payload.text.length > 10000) {
+    return "Post text must be a string of at most 10000 characters."
+  }
+  if (!payload.text.trim() && (!Array.isArray(payload.media) || payload.media.length === 0)) {
+    return "Post must contain text or at least one valid media URL."
+  }
+  if (Array.isArray(payload.media) && payload.media.length > 20) {
+    return "A post can contain at most 20 media items."
+  }
+  if (Array.isArray(payload.media) && payload.media.some((item) => {
+    if (!item || typeof item.url !== "string" || item.url.length > 4096) return true
+    try { return !["http:", "https:"].includes(new URL(item.url).protocol) } catch { return true }
+  })) {
+    return "Media URLs must be absolute HTTP or HTTPS URLs."
   }
   if (typeof payload.authorName !== "string" || !payload.authorName.trim() || payload.authorName.length > 200) {
     return "Author name must be a non-empty string of at most 200 characters."

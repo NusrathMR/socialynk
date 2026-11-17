@@ -1,0 +1,2 @@
+import { Actions, Caption, Header, MediaRenderer, PreviewFrame, Timestamp } from './common.jsx';
+export default function TwitterPost({ post }) { return <PreviewFrame platform="twitter"><Header post={post} subtitle={<>{post.username ? `@${post.username.replace(/^@/, '')} · ` : ''}<Timestamp post={post} /></>} verified /><Caption post={post} /><MediaRenderer post={post} fit="contain" /><Actions items={['Comment', 'Repost', 'Like', 'Views']} /></PreviewFrame>; }

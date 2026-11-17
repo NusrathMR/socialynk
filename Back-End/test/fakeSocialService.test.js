@@ -107,6 +107,7 @@ test("syncs only published posts and treats repeated syncs idempotently", async 
   assert.deepEqual(sandbox.requests[0].body, {
     platform: "instagram",
     text: "A published caption #demo",
+    media: [],
     authorName: "Socialynk User",
     sourcePostId: post._id,
   })

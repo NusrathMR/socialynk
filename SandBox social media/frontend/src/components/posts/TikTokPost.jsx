@@ -1,0 +1,2 @@
+import { Actions, Caption, Header, MediaRenderer, PreviewFrame } from './common.jsx';
+export default function TikTokPost({ post }) { return <PreviewFrame platform="tiktok"><div className="tiktok-media"><MediaRenderer post={post} fit="contain" vertical />{!post.media?.length && !post.imageUrl && !post.mediaUrl && <div className="tiktok-empty">Text post</div>}<div className="tiktok-overlay"><Header post={post} /><Caption post={post} /><Actions items={['Like', 'Comment', 'Share']} tone="vertical-actions" /></div></div></PreviewFrame>; }

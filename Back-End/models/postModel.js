@@ -85,7 +85,9 @@ const postSchema = new mongoose.Schema(
         media: [
             {
                 url: String,
-                publicId: String
+                publicId: String,
+                width: Number,
+                height: Number,
             }
         ]
     },

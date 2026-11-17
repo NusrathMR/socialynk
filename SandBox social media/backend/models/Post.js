@@ -1,5 +1,19 @@
 const mongoose = require('mongoose');
 
+const mediaSchema = new mongoose.Schema(
+  {
+    url: { type: String, trim: true, maxlength: 4096 },
+    type: { type: String, trim: true, maxlength: 100 },
+    alt: { type: String, trim: true, maxlength: 1000 },
+    width: { type: Number, min: 0 },
+    height: { type: Number, min: 0 },
+    thumbnailUrl: { type: String, trim: true, maxlength: 4096 },
+    title: { type: String, trim: true, maxlength: 500 },
+    duration: { type: String, trim: true, maxlength: 100 },
+  },
+  { _id: false },
+);
+
 const postSchema = new mongoose.Schema(
   {
     platform: {
@@ -11,7 +25,7 @@ const postSchema = new mongoose.Schema(
     },
     text: {
       type: String,
-      required: true,
+      default: '',
       trim: true,
       maxlength: 10000,
     },
@@ -27,6 +41,23 @@ const postSchema = new mongoose.Schema(
       trim: true,
       maxlength: 256,
     },
+    originalPostId: { type: String, trim: true, maxlength: 256 },
+    media: { type: [mediaSchema], default: [] },
+    // Kept as aliases for Socialynk payloads and older integrations.
+    imageUrl: { type: String, trim: true, maxlength: 4096 },
+    mediaUrl: { type: String, trim: true, maxlength: 4096 },
+    mediaType: { type: String, trim: true, maxlength: 100 },
+    thumbnailUrl: { type: String, trim: true, maxlength: 4096 },
+    displayName: { type: String, trim: true, maxlength: 200 },
+    username: { type: String, trim: true, maxlength: 200 },
+    profileImageUrl: { type: String, trim: true, maxlength: 4096 },
+    headline: { type: String, trim: true, maxlength: 500 },
+    audience: { type: String, trim: true, maxlength: 100 },
+    verified: { type: Boolean },
+    title: { type: String, trim: true, maxlength: 500 },
+    duration: { type: String, trim: true, maxlength: 100 },
+    viewCount: { type: Number, min: 0 },
+    likeCount: { type: Number, min: 0 },
   },
   { timestamps: true },
 );
