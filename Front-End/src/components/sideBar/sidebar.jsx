@@ -9,7 +9,6 @@ const baseLinks = [
   { name: "Home", icon: "⌂", to: "/dashboard" },
   { name: "Create", icon: "✎", to: "/createpage" },
   { name: "Publish", icon: "▦", to: "/publishpage" },
-  { name: "Pricing", icon: "▬" },
 ];
 
 function Sidebar() {

@@ -18,7 +18,6 @@ function LandingPage(){
                     <a href="" class="active">Features</a>
                     <a href="">Pipeline</a>
                     <a href="#channels">Channels</a>
-                    <a href="">Pricing</a>
                     </nav>
 
                     <div class="nav-actions">
@@ -95,7 +94,7 @@ function LandingPage(){
             </div>
             </section>
 
-            {/* --navigate to pricing section-- */}
+            {/* --call to action section-- */}
             <section class="cta">
             <div class="cta-box">
                 <h2>Ready to simplify your social media workflow?</h2>
@@ -121,7 +120,6 @@ function LandingPage(){
                 <nav class="footer-links">
                 <a href="#">Product</a>
                 <a href="#">Features</a>
-                <a href="#">Pricing</a>
                 <a href="#">Privacy Policy</a>
                 <a href="#">Terms of Service</a>
                 <a href="#">Status</a>

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { Settings, LayoutGrid, CircleDollarSign, LogOut, Zap } from "lucide-react"
+import { Settings, LayoutGrid, LogOut, Zap } from "lucide-react"
 import { useAuth } from "../AuthContext/authContext.jsx"
 import getInitials from "../../utils/getInitials.js"
 import "./profileMenu.css"
@@ -98,11 +98,6 @@ function ProfileMenu({ direction = "down", align = "right", size = 44, avatarIni
           <button type="button" className="pm-item" role="menuitem" onClick={() => goTo("/channels")}>
             <LayoutGrid size={18} />
             <span>Channels</span>
-          </button>
-
-          <button type="button" className="pm-item" role="menuitem" onClick={() => goTo("/pricing")}>
-            <CircleDollarSign size={18} />
-            <span>Pricing</span>
           </button>
 
           <div className="pm-divider"></div>
