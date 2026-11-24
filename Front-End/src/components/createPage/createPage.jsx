@@ -8,6 +8,7 @@ import AIAssistantModal from "../aiAssistant/aiAssistant.jsx"
 import ScheduleModal from "../scheduleModel/scheduleModel.jsx"
 import RecentPostsDropdown from "./recentPostsDropdown.jsx"
 import RichTextEditor from "./RichTextEditor.jsx"
+import ImageEditor from "./ImageEditor.jsx"
 import { htmlToPlainText, plainTextToHtml, sanitizeRichTextHtml } from "../../utils/postContent.js"
 
 // The five content type cards. "id" must match the values the backend accepts.
@@ -38,6 +39,10 @@ function draftTitle(caption) {
   return caption.length > 30 ? caption.slice(0, 30) + "..." : caption
 }
 
+function imageKey(image) {
+  return image?.publicId || image?.url
+}
+
 function CreatePage() {
   // The address can contain ?draft=<id>, which means "open this draft"
   const [searchParams, setSearchParams] = useSearchParams()
@@ -49,6 +54,11 @@ function CreatePage() {
   const [contentHtml, setContentHtml] = useState("")
   const [contentType, setContentType] = useState("social_post")
   const [images, setImages] = useState([])
+  const [editingImage, setEditingImage] = useState(null)
+  const [editingSource, setEditingSource] = useState(null)
+  const [editingTab, setEditingTab] = useState("watermark")
+  const [editingBusy, setEditingBusy] = useState(false)
+  const originalImageFilesRef = useRef(new Map())
   const [uploadedImageIds, setUploadedImageIds] = useState(() => new Set())
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState("")
@@ -181,6 +191,7 @@ function CreatePage() {
         setContentHtml(loadedHtml)
         setContentType(post.contentType)
         setImages(postMedia)
+        originalImageFilesRef.current.clear()
         setUploadedImageIds(new Set())
         setSaveStatus("idle")
         setErrorMessage("")
@@ -294,6 +305,9 @@ function CreatePage() {
     setContentHtml("")
     setContentType("social_post")
     setImages([])
+    originalImageFilesRef.current.clear()
+    setEditingImage(null)
+    setEditingSource(null)
     setUploadedImageIds(new Set())
     setUploading(false)
     setUploadError("")
@@ -326,6 +340,9 @@ function CreatePage() {
     })
     setPostId(null)
     setImages([])
+    originalImageFilesRef.current.clear()
+    setEditingImage(null)
+    setEditingSource(null)
     setUploadedImageIds(new Set())
     setUploading(false)
     setUploadError("")
@@ -469,6 +486,7 @@ function CreatePage() {
         try {
           const media = await uploadImage(file)
           if (generation !== imageUploadGenerationRef.current) break
+          originalImageFilesRef.current.set(imageKey(media), file)
           setImages((prev) => [...prev, media])
           setUploadedImageIds((prev) => new Set(prev).add(media.publicId || media.url))
         } catch (error) {
@@ -549,6 +567,7 @@ function CreatePage() {
     try {
       await deleteImage(image.publicId)
       setImages((prev) => prev.filter((img) => img.publicId !== image.publicId))
+      originalImageFilesRef.current.delete(imageKey(image))
       setUploadedImageIds((prev) => {
         const next = new Set(prev)
         next.delete(image.publicId || image.url)
@@ -558,6 +577,47 @@ function CreatePage() {
       setUploadError(error.message)
     } finally {
       setRemovingId("")
+    }
+  }
+
+  const openImageEditor = (image, tab = "watermark") => {
+    if (!image || uploading || editingBusy) return
+    setEditingTab(tab)
+    setEditingSource(originalImageFilesRef.current.get(imageKey(image)) || image.url)
+    setEditingImage(image)
+  }
+
+  const handleApplyEditedImage = async (file) => {
+    if (!editingImage) return
+    if (imageUploadInProgressRef.current) throw new Error("Please wait for the current image upload to finish.")
+
+    imageUploadInProgressRef.current = true
+    setEditingBusy(true)
+    setUploading(true)
+    setUploadError("")
+    setUploadProgress(`Uploading edited image: ${file.name}`)
+    const oldKey = imageKey(editingImage)
+    const originalSource = originalImageFilesRef.current.get(oldKey) || editingImage.url
+
+    try {
+      const media = await uploadImage(file)
+      const newKey = imageKey(media)
+      originalImageFilesRef.current.delete(oldKey)
+      originalImageFilesRef.current.set(newKey, originalSource)
+      setImages((current) => current.map((image) => imageKey(image) === oldKey ? media : image))
+      setUploadedImageIds((current) => {
+        const next = new Set(current)
+        next.delete(oldKey)
+        next.add(newKey)
+        return next
+      })
+      setEditingImage(null)
+      setEditingSource(null)
+    } finally {
+      imageUploadInProgressRef.current = false
+      setEditingBusy(false)
+      setUploading(false)
+      setUploadProgress("")
     }
   }
 
@@ -659,13 +719,11 @@ function CreatePage() {
 
               </div>
 
-              {/* Image editing (not connected yet, only className fixed) */}
               <div className="cr-edit-head">
                 <h3>Image Editing</h3>
                 <div className="cr-edit-links">
-                  <a href="#">Add Footer</a>
-                  <a href="#">Add Watermark</a>
-                  <a href="#">Enhance Image Quality</a>
+                  <button type="button" onClick={() => openImageEditor(images[0], "watermark")} disabled={!images.length || uploading}>Watermark</button>
+                  <button type="button" onClick={() => openImageEditor(images[0], "filters")} disabled={!images.length || uploading}>Filters</button>
                 </div>
               </div>
 
@@ -720,6 +778,13 @@ function CreatePage() {
                           <img src={img.url} alt="" className="cr-image" />
                           <button
                             type="button"
+                            className="cr-image-edit"
+                            onClick={() => openImageEditor(img)}
+                            disabled={uploading || removingId === img.publicId}
+                            aria-label={`Edit ${img.originalName || img.name || "image"}`}
+                          >Edit</button>
+                          <button
+                            type="button"
                             className="cr-image-remove"
                             onClick={() => handleRemoveImage(img)}
                             disabled={removingId === img.publicId}
@@ -734,8 +799,8 @@ function CreatePage() {
                 <div className="cr-tool">
                   <span className="cr-tool-icon">⛉</span>
                   <h4>Add Watermark</h4>
-                  <p>Protect your content with a custom watermark or logo overlay.</p>
-                  <button type="button">+ Add watermark</button>
+                  <p>Add a text or transparent logo watermark, then position and style it over your image.</p>
+                  <button type="button" onClick={() => openImageEditor(images[0], "watermark")} disabled={!images.length || uploading}>+ Edit watermark</button>
                 </div>
 
                 <div className="cr-tool">
@@ -747,9 +812,9 @@ function CreatePage() {
 
                 <div className="cr-tool">
                   <span className="cr-tool-icon">✦</span>
-                  <h4>Enhance Image</h4>
-                  <p>Improve brightness, clarity, and image quality via neural upscaling.</p>
-                  <button type="button">Enhance</button>
+                  <h4>Image Filters</h4>
+                  <p>Apply built-in color filters and adjust brightness, contrast, saturation, or blur.</p>
+                  <button type="button" onClick={() => openImageEditor(images[0], "filters")} disabled={!images.length || uploading}>+ Edit filters</button>
                 </div>
               </div>
 
@@ -847,6 +912,20 @@ function CreatePage() {
           </div>
         </div>
       </div>
+      {editingImage && (
+        <ImageEditor
+          source={editingSource || editingImage.url}
+          imageName={editingImage.originalName || editingImage.name || "image"}
+          initialTab={editingTab}
+          busy={editingBusy}
+          onApply={handleApplyEditedImage}
+          onClose={() => {
+            if (editingBusy) return
+            setEditingImage(null)
+            setEditingSource(null)
+          }}
+        />
+      )}
     </>
   )
 }

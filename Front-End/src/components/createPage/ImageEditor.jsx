@@ -1,0 +1,206 @@
+import { useEffect, useMemo, useRef, useState } from "react"
+import { canvasToBlob, drawEditedImage, IMAGE_FILTERS, WATERMARK_POSITIONS } from "../../utils/imageEditor/renderImage.js"
+
+const MAX_EXPORT_PIXELS = 40_000_000
+const FILTER_THUMBNAIL_STYLES = {
+  original: "none", grayscale: "grayscale(1)", sepia: "sepia(0.8)", vintage: "sepia(.55) contrast(.9)",
+  warm: "sepia(.3) saturate(1.2)", cool: "hue-rotate(18deg) saturate(.9)", bright: "brightness(1.2)",
+  contrast: "contrast(1.6)", bw: "grayscale(1) contrast(1.8)",
+}
+
+function createInitialSettings() {
+  return {
+    filter: "original",
+    intensity: 100,
+    adjustments: { brightness: 100, contrast: 100, saturation: 100, blur: 0 },
+    watermark: {
+      enabled: false, type: "text", text: "", fontSize: 5, fontFamily: "Arial, sans-serif", color: "#ffffff",
+      opacity: 80, position: "bottom-right", rotation: 0, logoSize: 18, logoFile: null,
+    },
+  }
+}
+
+const FONT_OPTIONS = [
+  ["Arial, sans-serif", "Arial"], ["Georgia, serif", "Georgia"], ["'Times New Roman', serif", "Times New Roman"],
+  ["Verdana, sans-serif", "Verdana"], ["'Trebuchet MS', sans-serif", "Trebuchet MS"], ["monospace", "Monospace"],
+]
+
+function ImageEditor({ source, imageName, initialTab = "watermark", busy = false, onApply, onClose }) {
+  const canvasRef = useRef(null)
+  const [settings, setSettings] = useState(createInitialSettings)
+  const [imageState, setImageState] = useState({ image: null, error: "" })
+  const [logoState, setLogoState] = useState({ image: null, url: "", error: "" })
+  const [exportFormat, setExportFormat] = useState("image/png")
+  const [exportError, setExportError] = useState("")
+  const [exporting, setExporting] = useState(false)
+  const [tab, setTab] = useState(initialTab)
+
+  const sourceUrl = useMemo(() => source instanceof Blob ? URL.createObjectURL(source) : source, [source])
+  useEffect(() => () => {
+    if (source instanceof Blob && sourceUrl) URL.revokeObjectURL(sourceUrl)
+  }, [source, sourceUrl])
+
+  useEffect(() => {
+    if (!sourceUrl) return undefined
+    let active = true
+    const image = new Image()
+    if (/^https?:/i.test(sourceUrl)) image.crossOrigin = "anonymous"
+    image.onload = () => active && setImageState({ image, error: "" })
+    image.onerror = () => active && setImageState({ image: null, error: "This image could not be opened for editing. It may be unavailable or block canvas access." })
+    image.src = sourceUrl
+    return () => { active = false }
+  }, [sourceUrl])
+
+  useEffect(() => {
+    const file = settings.watermark.logoFile
+    if (!file) return undefined
+    const url = URL.createObjectURL(file)
+    let active = true
+    const image = new Image()
+    image.onload = () => active && setLogoState({ image, url, error: "" })
+    image.onerror = () => active && setLogoState({ image: null, url, error: "The selected logo could not be opened." })
+    image.src = url
+    return () => {
+      active = false
+      URL.revokeObjectURL(url)
+    }
+  }, [settings.watermark.logoFile])
+
+  useEffect(() => {
+    if (!imageState.image || !canvasRef.current) return
+    try {
+      drawEditedImage(canvasRef.current, imageState.image, settings, logoState.image, 1400)
+    } catch (error) {
+      const message = error.message || "Could not render the preview."
+      const timeout = window.setTimeout(() => setExportError(message), 0)
+      return () => window.clearTimeout(timeout)
+    }
+  }, [imageState.image, logoState.image, settings])
+
+  useEffect(() => {
+    const handleEscape = (event) => event.key === "Escape" && !busy && onClose()
+    document.addEventListener("keydown", handleEscape)
+    return () => document.removeEventListener("keydown", handleEscape)
+  }, [busy, onClose])
+
+  function updateWatermark(key, value) {
+    setSettings((current) => ({ ...current, watermark: { ...current.watermark, [key]: value } }))
+  }
+
+  function updateAdjustment(key, value) {
+    setSettings((current) => ({ ...current, adjustments: { ...current.adjustments, [key]: value } }))
+  }
+
+  function resetEditor() {
+    setSettings(createInitialSettings())
+    setLogoState({ image: null, url: "", error: "" })
+    setExportError("")
+  }
+
+  async function exportImage() {
+    if (!imageState.image || !canvasRef.current || busy || exporting) return
+    setExportError("")
+    const width = imageState.image.naturalWidth
+    const height = imageState.image.naturalHeight
+    if (width * height > MAX_EXPORT_PIXELS) {
+      setExportError("This image is too large to export at full resolution in this browser. Choose a smaller image and try again.")
+      return
+    }
+    setExporting(true)
+    try {
+      const exportCanvas = document.createElement("canvas")
+      let blob
+      try {
+        drawEditedImage(exportCanvas, imageState.image, settings, logoState.image, 0, exportFormat === "image/jpeg" ? "#ffffff" : null)
+        blob = await canvasToBlob(exportCanvas, exportFormat)
+      } finally {
+        exportCanvas.width = 0
+        exportCanvas.height = 0
+      }
+      const extension = exportFormat === "image/jpeg" ? "jpg" : "png"
+      const baseName = String(imageName || "image").replace(/\.[^.]+$/, "") || "image"
+      const file = new File([blob], `${baseName}-edited.${extension}`, { type: exportFormat, lastModified: Date.now() })
+      await onApply(file)
+    } catch (error) {
+      setExportError(error.message || "Could not export this image. Please try again.")
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  return (
+    <div className="ie-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && !busy && onClose()}>
+      <section className="ie-dialog" role="dialog" aria-modal="true" aria-labelledby="ie-title">
+        <header className="ie-header">
+          <div><h2 id="ie-title">Edit image</h2><p>Changes stay in this preview until you use the edited image.</p></div>
+          <button type="button" className="ie-close" onClick={onClose} disabled={busy} aria-label="Close image editor">×</button>
+        </header>
+
+        <div className="ie-workspace">
+          <div className="ie-preview-area">
+            {imageState.error ? <p className="ie-error">{imageState.error}</p> : !imageState.image ? <p className="ie-muted">Loading image…</p> : null}
+            <canvas ref={canvasRef} className="ie-preview-canvas" aria-label="Edited image preview" />
+            {logoState.error && <p className="ie-error">{logoState.error}</p>}
+          </div>
+
+          <div className="ie-tools">
+            <div className="ie-tabs" role="tablist" aria-label="Image editing tools">
+              <button type="button" role="tab" aria-selected={tab === "watermark"} className={tab === "watermark" ? "active" : ""} onClick={() => setTab("watermark")}>Watermark</button>
+              <button type="button" role="tab" aria-selected={tab === "filters"} className={tab === "filters" ? "active" : ""} onClick={() => setTab("filters")}>Filters</button>
+            </div>
+
+            {tab === "watermark" ? (
+              <div className="ie-controls">
+                <label className="ie-toggle"><input type="checkbox" checked={settings.watermark.enabled} onChange={(event) => updateWatermark("enabled", event.target.checked)} /> Enable watermark</label>
+                <div className="ie-inline-options">
+                  <label>Type<select value={settings.watermark.type} onChange={(event) => updateWatermark("type", event.target.value)}><option value="text">Text</option><option value="logo">Logo</option></select></label>
+                  <label>Position<select value={settings.watermark.position} onChange={(event) => updateWatermark("position", event.target.value)}>{WATERMARK_POSITIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+                </div>
+                {settings.watermark.type === "text" ? <>
+                  <label>Watermark text<input value={settings.watermark.text} maxLength={100} onChange={(event) => updateWatermark("text", event.target.value)} placeholder="Your brand or website" /></label>
+                  <div className="ie-inline-options">
+                    <label>Font<select value={settings.watermark.fontFamily} onChange={(event) => updateWatermark("fontFamily", event.target.value)}>{FONT_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+                    <label>Text color<input type="color" value={settings.watermark.color} onChange={(event) => updateWatermark("color", event.target.value)} /></label>
+                  </div>
+                  <label>Text size ({settings.watermark.fontSize}% of image)<input type="range" min="1" max="16" value={settings.watermark.fontSize} onChange={(event) => updateWatermark("fontSize", event.target.value)} /></label>
+                  <label>Rotation ({settings.watermark.rotation}°)<input type="range" min="-45" max="45" value={settings.watermark.rotation} onChange={(event) => updateWatermark("rotation", event.target.value)} /></label>
+                </> : <>
+                  <label>Logo image<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { setLogoState({ image: null, url: "", error: "" }); updateWatermark("logoFile", event.target.files?.[0] || null) }} /></label>
+                  <label>Logo size ({settings.watermark.logoSize}% of image width)<input type="range" min="5" max="40" value={settings.watermark.logoSize} onChange={(event) => updateWatermark("logoSize", event.target.value)} /></label>
+                </>}
+                <label>Opacity ({settings.watermark.opacity}%)<input type="range" min="0" max="100" value={settings.watermark.opacity} onChange={(event) => updateWatermark("opacity", event.target.value)} /></label>
+              </div>
+            ) : (
+              <div className="ie-controls">
+                <div className="ie-filter-grid">
+                  {IMAGE_FILTERS.map((filter) => (
+                    <button type="button" key={filter.id} className={settings.filter === filter.id ? "ie-filter selected" : "ie-filter"} onClick={() => setSettings((current) => ({ ...current, filter: filter.id }))} aria-pressed={settings.filter === filter.id}>
+                      <span className="ie-filter-sample" style={{ backgroundImage: `url("${sourceUrl}")`, filter: FILTER_THUMBNAIL_STYLES[filter.id] }} />{filter.label}
+                    </button>
+                  ))}
+                </div>
+                <label>Filter intensity ({settings.intensity}%)<input type="range" min="0" max="100" value={settings.intensity} disabled={settings.filter === "original"} onChange={(event) => setSettings((current) => ({ ...current, intensity: event.target.value }))} /></label>
+                <label>Brightness ({settings.adjustments.brightness}%)<input type="range" min="0" max="200" value={settings.adjustments.brightness} onChange={(event) => updateAdjustment("brightness", event.target.value)} /></label>
+                <label>Contrast ({settings.adjustments.contrast}%)<input type="range" min="0" max="200" value={settings.adjustments.contrast} onChange={(event) => updateAdjustment("contrast", event.target.value)} /></label>
+                <label>Saturation ({settings.adjustments.saturation}%)<input type="range" min="0" max="200" value={settings.adjustments.saturation} onChange={(event) => updateAdjustment("saturation", event.target.value)} /></label>
+                <label>Blur ({settings.adjustments.blur}px)<input type="range" min="0" max="10" step="0.5" value={settings.adjustments.blur} onChange={(event) => updateAdjustment("blur", event.target.value)} /></label>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <footer className="ie-footer">
+          {exportError && <p className="ie-error" role="alert">{exportError}</p>}
+          <div className="ie-footer-actions">
+            <button type="button" className="ie-secondary" onClick={resetEditor} disabled={busy}>Reset edits</button>
+            <label className="ie-format">Export as<select value={exportFormat} onChange={(event) => setExportFormat(event.target.value)}><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option></select></label>
+            <button type="button" className="ie-secondary" onClick={onClose} disabled={busy}>Cancel</button>
+            <button type="button" className="ie-primary" onClick={exportImage} disabled={busy || exporting || !imageState.image}>{busy || exporting ? "Uploading edited image…" : "Use edited image"}</button>
+          </div>
+        </footer>
+      </section>
+    </div>
+  )
+}
+
+export default ImageEditor
