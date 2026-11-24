@@ -27,10 +27,10 @@
   --sim-error-border: #fca5a5;
 }
 
-.sim-layout[data-theme="dark"] {
-  --sim-nav-bg: #1d1d1d;
-  --sim-nav-tab-bg: #242424;
-  --sim-nav-tab-border: #383838;
+html[data-theme="dark"] .sim-layout {
+  --sim-nav-bg: #111;
+  --sim-nav-tab-bg: #111;
+  --sim-nav-tab-border: #111;
   --sim-nav-text: #f1f1f1;
   --sim-nav-hover: #303030;
   --sim-nav-active: #f1f1f1;
@@ -47,14 +47,6 @@
 .sim-layout,
 .sim-layout * {
   transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
-}
-
-.sim-layout {
-  color-scheme: light;
-}
-
-.sim-layout[data-theme="dark"] {
-  color-scheme: dark;
 }
 
 @media (prefers-reduced-motion: reduce) {

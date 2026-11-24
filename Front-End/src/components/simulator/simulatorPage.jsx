@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { getPublishedPosts } from "../../api/api.js"
-import { useTheme } from "../ThemeContext/themeContext.js"
 import Sidebar from "../sideBar/sidebar.jsx"
 import TopBar from "../topBar/topBar.jsx"
 import SimulatorPost from "./simulatorPost.jsx"
@@ -21,7 +20,6 @@ function getPostTime(post) {
 }
 
 function SimulatorPage() {
-  const { theme } = useTheme()
   const [posts, setPosts] = useState([])
   const [activePlatform, setActivePlatform] = useState("all")
   const [loading, setLoading] = useState(true)
@@ -73,7 +71,7 @@ function SimulatorPage() {
   }
 
   return (
-    <div className="db-layout sim-layout" data-theme={theme}>
+    <div className="db-layout sim-layout">
       <Sidebar />
 
       <main className="sim-main">
