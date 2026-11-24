@@ -1,16 +1,23 @@
-:root {
-  --sim-page-bg: #fafafa;
-  --sim-surface: #fff;
-  --sim-card: #fff;
-  --sim-elevated: #fff;
-  --sim-text: #222;
-  --sim-text-secondary: #333;
-  --sim-text-muted: #595959;
-  --sim-border: #e5e5e5;
-  --sim-accent: #111;
-  --sim-accent-text: #fff;
-  --sim-hover: #eee;
-  --sim-input-bg: #fff;
+.sim-layout {
+  --sim-page-bg: var(--app-bg);
+  --sim-surface: var(--surface);
+  --sim-card: var(--surface);
+  --sim-elevated: var(--surface-muted);
+  --sim-text: var(--text);
+  --sim-text-secondary: var(--text);
+  --sim-text-muted: var(--text-muted);
+  --sim-border: var(--border);
+  --sim-accent: var(--button-bg);
+  --sim-accent-text: var(--button-text);
+  --sim-hover: var(--hover);
+  --sim-input-bg: var(--input-bg);
+  --sim-nav-bg: #111;
+  --sim-nav-tab-bg: #111;
+  --sim-nav-tab-border: #111;
+  --sim-nav-text: #fff;
+  --sim-nav-hover: #292929;
+  --sim-nav-active: #383838;
+  --sim-nav-active-text: #fff;
   --sim-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
   --sim-overlay: rgba(0, 0, 0, 0.48);
   --sim-overlay-text: #fff;
@@ -20,19 +27,14 @@
   --sim-error-border: #fca5a5;
 }
 
-html[data-theme="dark"] {
-  --sim-page-bg: #121212;
-  --sim-surface: #1d1d1d;
-  --sim-card: #1d1d1d;
-  --sim-elevated: #272727;
-  --sim-text: #f1f1f1;
-  --sim-text-secondary: #e0e0e0;
-  --sim-text-muted: #b0b0b0;
-  --sim-border: #383838;
-  --sim-accent: #f1f1f1;
-  --sim-accent-text: #111;
-  --sim-hover: #303030;
-  --sim-input-bg: #242424;
+.sim-layout[data-theme="dark"] {
+  --sim-nav-bg: #1d1d1d;
+  --sim-nav-tab-bg: #242424;
+  --sim-nav-tab-border: #383838;
+  --sim-nav-text: #f1f1f1;
+  --sim-nav-hover: #303030;
+  --sim-nav-active: #f1f1f1;
+  --sim-nav-active-text: #111;
   --sim-shadow: 0 8px 16px rgba(0, 0, 0, 0.32);
   --sim-overlay: rgba(0, 0, 0, 0.56);
   --sim-overlay-text: #fff;
@@ -51,7 +53,7 @@ html[data-theme="dark"] {
   color-scheme: light;
 }
 
-html[data-theme="dark"] .sim-layout {
+.sim-layout[data-theme="dark"] {
   color-scheme: dark;
 }
 
@@ -71,91 +73,6 @@ html[data-theme="dark"] .sim-layout {
 .sim-layout :is(button, a):focus-visible {
   outline: 2px solid var(--sim-focus-ring);
   outline-offset: 2px;
-}
-
-.sim-layout .app-sidebar {
-  background: var(--sim-surface);
-  border-right: 1px solid var(--sim-border);
-  color: var(--sim-text);
-}
-
-.sim-layout .app-sidebar .db-logo,
-.sim-layout .app-sidebar .db-menu a.active {
-  background: var(--sim-accent);
-  color: var(--sim-accent-text);
-}
-
-.sim-layout .app-sidebar .db-brand small,
-.sim-layout .app-sidebar .db-user-card small,
-.sim-layout .app-sidebar .db-dots {
-  color: var(--sim-text-muted);
-}
-
-.sim-layout .app-sidebar .db-create-btn {
-  background: var(--sim-accent);
-  color: var(--sim-accent-text);
-  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
-}
-
-.sim-layout .app-sidebar .db-create-btn:hover {
-  background: var(--sim-hover);
-  color: var(--sim-text);
-}
-
-.sim-layout .app-sidebar .db-menu a {
-  color: var(--sim-text-secondary);
-  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
-}
-
-.sim-layout .app-sidebar .db-menu a:hover,
-.sim-layout .app-sidebar .db-menu a.active {
-  background: var(--sim-hover);
-  color: var(--sim-text);
-}
-
-.sim-layout .app-sidebar .db-menu a.active {
-  background: var(--sim-accent);
-  color: var(--sim-accent-text);
-}
-
-.sim-layout .app-sidebar .db-user-card {
-  background: var(--sim-elevated);
-  border-color: var(--sim-border);
-}
-
-.sim-layout .app-sidebar .db-user-card .db-avatar-light {
-  background: var(--sim-accent);
-  color: var(--sim-accent-text);
-}
-
-.sim-layout .profile-menu .pm-popup {
-  background: var(--sim-surface);
-  border-color: var(--sim-border);
-  box-shadow: var(--sim-shadow);
-  color: var(--sim-text);
-}
-
-.sim-layout .profile-menu .pm-plan {
-  color: var(--sim-text-muted);
-}
-
-.sim-layout .profile-menu .pm-upgrade {
-  background: var(--sim-elevated);
-  border-color: var(--sim-border);
-  color: var(--sim-text);
-}
-
-.sim-layout .profile-menu .pm-divider {
-  background: var(--sim-border);
-}
-
-.sim-layout .profile-menu .pm-item {
-  color: var(--sim-text);
-}
-
-.sim-layout .profile-menu .pm-item:hover,
-.sim-layout .profile-menu .pm-upgrade:hover {
-  background: var(--sim-hover);
 }
 
 .sim-main {
@@ -196,6 +113,9 @@ html[data-theme="dark"] .sim-layout {
   overflow-x: auto;
   white-space: nowrap;
   scrollbar-width: none;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--sim-nav-bg);
 }
 
 .sim-tabs::-webkit-scrollbar {
@@ -222,6 +142,21 @@ html[data-theme="dark"] .sim-layout {
   text-decoration: none;
 }
 
+.sim-tabs .sim-tab {
+  background: var(--sim-nav-tab-bg);
+  border-color: var(--sim-nav-tab-border);
+  color: var(--sim-nav-text);
+}
+
+.sim-tabs .sim-tab span {
+  color: var(--sim-nav-text);
+  opacity: 0.76;
+}
+
+.sim-tabs .sim-tab:hover:not(.sim-tab--active) {
+  background: var(--sim-nav-hover);
+}
+
 .sim-tab span {
   color: var(--sim-text-muted);
   font-size: 10px;
@@ -232,6 +167,14 @@ html[data-theme="dark"] .sim-layout {
   background: var(--sim-accent);
   border-color: var(--sim-accent);
   color: var(--sim-accent-text);
+}
+
+.sim-tabs .sim-tab--active,
+.sim-tabs .sim-tab--active span {
+  background: var(--sim-nav-active);
+  border-color: var(--sim-nav-active);
+  color: var(--sim-nav-active-text);
+  opacity: 1;
 }
 
 .sim-refresh {
