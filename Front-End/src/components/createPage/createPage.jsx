@@ -39,8 +39,19 @@ function draftTitle(caption) {
   return caption.length > 30 ? caption.slice(0, 30) + "..." : caption
 }
 
+function getMediaUrl(image) {
+  if (typeof image === "string") return image.trim()
+  const url = image?.secure_url || image?.secureUrl || image?.url || image?.imageUrl || image?.src
+  return typeof url === "string" ? url.trim() : ""
+}
+
+function normalizeMedia(image) {
+  const url = getMediaUrl(image)
+  return image && typeof image === "object" ? { ...image, ...(url ? { url } : {}) } : image
+}
+
 function imageKey(image) {
-  return image?.publicId || image?.url
+  return image?.publicId || getMediaUrl(image)
 }
 
 function CreatePage() {
@@ -171,7 +182,7 @@ function CreatePage() {
         if (!active || generation !== draftLoadGenerationRef.current) return
 
         const post = response.data.post
-        const postMedia = post.media || []
+        const postMedia = (post.media || []).map(normalizeMedia)
         const loadedHtml = post.contentHtml
           ? sanitizeRichTextHtml(post.contentHtml)
           : plainTextToHtml(post.caption || "")
@@ -484,7 +495,7 @@ function CreatePage() {
       for (const [index, file] of validFiles.entries()) {
         setUploadProgress(`Uploading ${index + 1} of ${validFiles.length}: ${file.name}`)
         try {
-          const media = await uploadImage(file)
+          const media = normalizeMedia(await uploadImage(file))
           if (generation !== imageUploadGenerationRef.current) break
           originalImageFilesRef.current.set(imageKey(media), file)
           setImages((prev) => [...prev, media])
@@ -582,8 +593,14 @@ function CreatePage() {
 
   const openImageEditor = (image, tab = "watermark") => {
     if (!image || uploading || editingBusy) return
+    const mediaUrl = getMediaUrl(image)
+    const localFile = originalImageFilesRef.current.get(imageKey(image))
+    if (!localFile && !mediaUrl) {
+      setUploadError("This media item does not contain a usable image URL.")
+      return
+    }
     setEditingTab(tab)
-    setEditingSource(originalImageFilesRef.current.get(imageKey(image)) || image.url)
+    setEditingSource(localFile || mediaUrl)
     setEditingImage(image)
   }
 
@@ -597,13 +614,13 @@ function CreatePage() {
     setUploadError("")
     setUploadProgress(`Uploading edited image: ${file.name}`)
     const oldKey = imageKey(editingImage)
-    const originalSource = originalImageFilesRef.current.get(oldKey) || editingImage.url
-
     try {
-      const media = await uploadImage(file)
+      const media = normalizeMedia(await uploadImage(file))
       const newKey = imageKey(media)
       originalImageFilesRef.current.delete(oldKey)
-      originalImageFilesRef.current.set(newKey, originalSource)
+      // Keep the newly edited local file as the next editor source. The old source
+      // would discard prior edits whenever this image is opened again.
+      originalImageFilesRef.current.set(newKey, file)
       setImages((current) => current.map((image) => imageKey(image) === oldKey ? media : image))
       setUploadedImageIds((current) => {
         const next = new Set(current)
@@ -775,7 +792,7 @@ function CreatePage() {
                           className={removingId === img.publicId ? "cr-image-item removing" : "cr-image-item"}
                           key={img.publicId || img.url}
                         >
-                          <img src={img.url} alt="" className="cr-image" />
+                          <img src={getMediaUrl(img)} alt="" className="cr-image" />
                           <button
                             type="button"
                             className="cr-image-edit"
@@ -914,7 +931,7 @@ function CreatePage() {
       </div>
       {editingImage && (
         <ImageEditor
-          source={editingSource || editingImage.url}
+          source={editingSource || getMediaUrl(editingImage)}
           imageName={editingImage.originalName || editingImage.name || "image"}
           initialTab={editingTab}
           busy={editingBusy}

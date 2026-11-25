@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { canvasToBlob, drawEditedImage, IMAGE_FILTERS, WATERMARK_POSITIONS } from "../../utils/imageEditor/renderImage.js"
 
 const MAX_EXPORT_PIXELS = 40_000_000
@@ -34,22 +34,36 @@ function ImageEditor({ source, imageName, initialTab = "watermark", busy = false
   const [exportError, setExportError] = useState("")
   const [exporting, setExporting] = useState(false)
   const [tab, setTab] = useState(initialTab)
-
-  const sourceUrl = useMemo(() => source instanceof Blob ? URL.createObjectURL(source) : source, [source])
-  useEffect(() => () => {
-    if (source instanceof Blob && sourceUrl) URL.revokeObjectURL(sourceUrl)
-  }, [source, sourceUrl])
+  const loadedImage = imageState.source === source ? imageState.image : null
+  const loadError = imageState.source === source ? imageState.error : ""
 
   useEffect(() => {
-    if (!sourceUrl) return undefined
     let active = true
+    const isBlob = source instanceof Blob
+    const sourceUrl = isBlob
+      ? URL.createObjectURL(source)
+      : typeof source === "string" ? source.trim() : ""
+    if (!sourceUrl) return undefined
+
     const image = new Image()
-    if (/^https?:/i.test(sourceUrl)) image.crossOrigin = "anonymous"
-    image.onload = () => active && setImageState({ image, error: "" })
-    image.onerror = () => active && setImageState({ image: null, error: "This image could not be opened for editing. It may be unavailable or block canvas access." })
+    // CORS mode must be selected before src for remote images so Canvas may read/export pixels.
+    // Blob/object URLs and data URLs are same-origin/local and do not need this attribute.
+    if (/^https?:\/\//i.test(sourceUrl)) image.crossOrigin = "anonymous"
+    image.onload = () => {
+      if (!active) return
+      if (!image.naturalWidth || !image.naturalHeight) {
+        setImageState({ source, sourceUrl, image: null, error: "The image loaded without valid dimensions and cannot be edited." })
+        return
+      }
+      setImageState({ source, sourceUrl, image, error: "" })
+    }
+    image.onerror = () => active && setImageState({ source, sourceUrl, image: null, error: "This image could not be loaded. Check that the URL is available and, for remote images, that its server allows cross-origin image access (CORS)." })
     image.src = sourceUrl
-    return () => { active = false }
-  }, [sourceUrl])
+    return () => {
+      active = false
+      if (isBlob) URL.revokeObjectURL(sourceUrl)
+    }
+  }, [source])
 
   useEffect(() => {
     const file = settings.watermark.logoFile
@@ -67,15 +81,15 @@ function ImageEditor({ source, imageName, initialTab = "watermark", busy = false
   }, [settings.watermark.logoFile])
 
   useEffect(() => {
-    if (!imageState.image || !canvasRef.current) return
+    if (!loadedImage || !canvasRef.current) return
     try {
-      drawEditedImage(canvasRef.current, imageState.image, settings, logoState.image, 1400)
+      drawEditedImage(canvasRef.current, loadedImage, settings, logoState.image, 1400)
     } catch (error) {
       const message = error.message || "Could not render the preview."
       const timeout = window.setTimeout(() => setExportError(message), 0)
       return () => window.clearTimeout(timeout)
     }
-  }, [imageState.image, logoState.image, settings])
+  }, [loadedImage, logoState.image, settings])
 
   useEffect(() => {
     const handleEscape = (event) => event.key === "Escape" && !busy && onClose()
@@ -98,10 +112,10 @@ function ImageEditor({ source, imageName, initialTab = "watermark", busy = false
   }
 
   async function exportImage() {
-    if (!imageState.image || !canvasRef.current || busy || exporting) return
+    if (!loadedImage || !canvasRef.current || busy || exporting) return
     setExportError("")
-    const width = imageState.image.naturalWidth
-    const height = imageState.image.naturalHeight
+    const width = loadedImage.naturalWidth
+    const height = loadedImage.naturalHeight
     if (width * height > MAX_EXPORT_PIXELS) {
       setExportError("This image is too large to export at full resolution in this browser. Choose a smaller image and try again.")
       return
@@ -111,7 +125,7 @@ function ImageEditor({ source, imageName, initialTab = "watermark", busy = false
       const exportCanvas = document.createElement("canvas")
       let blob
       try {
-        drawEditedImage(exportCanvas, imageState.image, settings, logoState.image, 0, exportFormat === "image/jpeg" ? "#ffffff" : null)
+        drawEditedImage(exportCanvas, loadedImage, settings, logoState.image, 0, exportFormat === "image/jpeg" ? "#ffffff" : null)
         blob = await canvasToBlob(exportCanvas, exportFormat)
       } finally {
         exportCanvas.width = 0
@@ -138,7 +152,7 @@ function ImageEditor({ source, imageName, initialTab = "watermark", busy = false
 
         <div className="ie-workspace">
           <div className="ie-preview-area">
-            {imageState.error ? <p className="ie-error">{imageState.error}</p> : !imageState.image ? <p className="ie-muted">Loading image…</p> : null}
+            {loadError ? <p className="ie-error">{loadError}</p> : !loadedImage ? <p className="ie-muted">Loading image…</p> : null}
             <canvas ref={canvasRef} className="ie-preview-canvas" aria-label="Edited image preview" />
             {logoState.error && <p className="ie-error">{logoState.error}</p>}
           </div>
@@ -175,7 +189,7 @@ function ImageEditor({ source, imageName, initialTab = "watermark", busy = false
                 <div className="ie-filter-grid">
                   {IMAGE_FILTERS.map((filter) => (
                     <button type="button" key={filter.id} className={settings.filter === filter.id ? "ie-filter selected" : "ie-filter"} onClick={() => setSettings((current) => ({ ...current, filter: filter.id }))} aria-pressed={settings.filter === filter.id}>
-                      <span className="ie-filter-sample" style={{ backgroundImage: `url("${sourceUrl}")`, filter: FILTER_THUMBNAIL_STYLES[filter.id] }} />{filter.label}
+                      <span className="ie-filter-sample" style={{ backgroundImage: `url("${imageState.sourceUrl || (typeof source === "string" ? source : "")}")`, filter: FILTER_THUMBNAIL_STYLES[filter.id] }} />{filter.label}
                     </button>
                   ))}
                 </div>
@@ -195,7 +209,7 @@ function ImageEditor({ source, imageName, initialTab = "watermark", busy = false
             <button type="button" className="ie-secondary" onClick={resetEditor} disabled={busy}>Reset edits</button>
             <label className="ie-format">Export as<select value={exportFormat} onChange={(event) => setExportFormat(event.target.value)}><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option></select></label>
             <button type="button" className="ie-secondary" onClick={onClose} disabled={busy}>Cancel</button>
-            <button type="button" className="ie-primary" onClick={exportImage} disabled={busy || exporting || !imageState.image}>{busy || exporting ? "Uploading edited image…" : "Use edited image"}</button>
+            <button type="button" className="ie-primary" onClick={exportImage} disabled={busy || exporting || !loadedImage}>{busy || exporting ? "Uploading edited image…" : "Use edited image"}</button>
           </div>
         </footer>
       </section>
