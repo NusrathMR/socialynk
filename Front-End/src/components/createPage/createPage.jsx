@@ -824,7 +824,7 @@ function CreatePage() {
                   <span className="cr-tool-icon">▯</span>
                   <h4>Add Footer</h4>
                   <p>Add your logo, website URL, or custom legal disclaimer strip.</p>
-                  <button type="button">+ Add footer</button>
+                  <button type="button" onClick={() => openImageEditor(images[0], "footer")} disabled={!images.length || uploading}>+ Add footer</button>
                 </div>
 
                 <div className="cr-tool">

@@ -17,6 +17,7 @@ function createInitialSettings() {
       enabled: false, type: "text", text: "", fontSize: 5, fontFamily: "Arial, sans-serif", color: "#ffffff",
       opacity: 80, position: "bottom-right", rotation: 0, logoSize: 18, logoFile: null,
     },
+    footer: { position: "bottom" },
   }
 }
 
@@ -30,12 +31,15 @@ function ImageEditor({ source, imageName, initialTab = "watermark", busy = false
   const [settings, setSettings] = useState(createInitialSettings)
   const [imageState, setImageState] = useState({ image: null, error: "" })
   const [logoState, setLogoState] = useState({ image: null, url: "", error: "" })
+  const [footerFile, setFooterFile] = useState(null)
+  const [footerState, setFooterState] = useState({ file: null, image: null, url: "", error: "" })
   const [exportFormat, setExportFormat] = useState("image/png")
   const [exportError, setExportError] = useState("")
   const [exporting, setExporting] = useState(false)
   const [tab, setTab] = useState(initialTab)
   const loadedImage = imageState.source === source ? imageState.image : null
   const loadError = imageState.source === source ? imageState.error : ""
+  const loadedFooter = footerState.file === footerFile ? footerState.image : null
 
   useEffect(() => {
     let active = true
@@ -81,15 +85,36 @@ function ImageEditor({ source, imageName, initialTab = "watermark", busy = false
   }, [settings.watermark.logoFile])
 
   useEffect(() => {
+    if (!footerFile) return undefined
+    let active = true
+    const url = URL.createObjectURL(footerFile)
+    const image = new Image()
+    image.onload = () => {
+      if (!active) return
+      if (!image.naturalWidth || !image.naturalHeight) {
+        setFooterState({ file: footerFile, image: null, url, error: "The selected footer PNG has invalid image dimensions." })
+        return
+      }
+      setFooterState({ file: footerFile, image, url, error: "" })
+    }
+    image.onerror = () => active && setFooterState({ file: footerFile, image: null, url, error: "The selected footer could not be opened as a PNG image." })
+    image.src = url
+    return () => {
+      active = false
+      URL.revokeObjectURL(url)
+    }
+  }, [footerFile])
+
+  useEffect(() => {
     if (!loadedImage || !canvasRef.current) return
     try {
-      drawEditedImage(canvasRef.current, loadedImage, settings, logoState.image, 1400)
+      drawEditedImage(canvasRef.current, loadedImage, settings, logoState.image, 1400, null, loadedFooter)
     } catch (error) {
       const message = error.message || "Could not render the preview."
       const timeout = window.setTimeout(() => setExportError(message), 0)
       return () => window.clearTimeout(timeout)
     }
-  }, [loadedImage, logoState.image, settings])
+  }, [loadedImage, logoState.image, loadedFooter, settings])
 
   useEffect(() => {
     const handleEscape = (event) => event.key === "Escape" && !busy && onClose()
@@ -105,9 +130,35 @@ function ImageEditor({ source, imageName, initialTab = "watermark", busy = false
     setSettings((current) => ({ ...current, adjustments: { ...current.adjustments, [key]: value } }))
   }
 
+  async function handleFooterFile(file) {
+    if (!file) return
+    const fileNameIsPng = file.name.toLowerCase().endsWith(".png")
+    let signature
+    try {
+      signature = new Uint8Array(await file.slice(0, 8).arrayBuffer())
+    } catch {
+      setFooterState((current) => ({ ...current, error: "Could not read the selected footer file." }))
+      return
+    }
+    const isPngSignature = [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => signature[index] === byte)
+    if (!fileNameIsPng || (file.type && file.type !== "image/png") || !isPngSignature) {
+      setFooterState((current) => ({ ...current, error: "Choose a valid PNG image for the footer." }))
+      return
+    }
+    setFooterState({ file, image: null, url: "", error: "" })
+    setFooterFile(file)
+  }
+
+  function removeFooter() {
+    setFooterFile(null)
+    setFooterState({ file: null, image: null, url: "", error: "" })
+  }
+
   function resetEditor() {
     setSettings(createInitialSettings())
     setLogoState({ image: null, url: "", error: "" })
+    setFooterFile(null)
+    setFooterState({ file: null, image: null, url: "", error: "" })
     setExportError("")
   }
 
@@ -125,7 +176,7 @@ function ImageEditor({ source, imageName, initialTab = "watermark", busy = false
       const exportCanvas = document.createElement("canvas")
       let blob
       try {
-        drawEditedImage(exportCanvas, loadedImage, settings, logoState.image, 0, exportFormat === "image/jpeg" ? "#ffffff" : null)
+        drawEditedImage(exportCanvas, loadedImage, settings, logoState.image, 0, exportFormat === "image/jpeg" ? "#ffffff" : null, loadedFooter)
         blob = await canvasToBlob(exportCanvas, exportFormat)
       } finally {
         exportCanvas.width = 0
@@ -160,10 +211,22 @@ function ImageEditor({ source, imageName, initialTab = "watermark", busy = false
           <div className="ie-tools">
             <div className="ie-tabs" role="tablist" aria-label="Image editing tools">
               <button type="button" role="tab" aria-selected={tab === "watermark"} className={tab === "watermark" ? "active" : ""} onClick={() => setTab("watermark")}>Watermark</button>
+              <button type="button" role="tab" aria-selected={tab === "footer"} className={tab === "footer" ? "active" : ""} onClick={() => setTab("footer")}>Footer</button>
               <button type="button" role="tab" aria-selected={tab === "filters"} className={tab === "filters" ? "active" : ""} onClick={() => setTab("filters")}>Filters</button>
             </div>
 
-            {tab === "watermark" ? (
+            {tab === "footer" ? (
+              <div className="ie-controls">
+                <label className="ie-footer-upload">{footerFile ? "Replace footer PNG" : "Upload Footer PNG"}<input type="file" accept="image/png,.png" onChange={(event) => { void handleFooterFile(event.target.files?.[0]); event.target.value = "" }} /></label>
+                {footerState.error && <p className="ie-error" role="alert">{footerState.error}</p>}
+                {loadedFooter && <div className="ie-footer-preview"><img src={footerState.url} alt="Footer preview" /><button type="button" className="ie-secondary" onClick={removeFooter}>Remove footer</button></div>}
+                {footerFile && !loadedFooter && !footerState.error && <p className="ie-muted">Loading footer…</p>}
+                <div className="ie-footer-positions" role="group" aria-label="Footer position">
+                  {[["top", "Top"], ["middle", "Middle"], ["bottom", "Bottom"]].map(([value, label]) => <button type="button" key={value} className={settings.footer.position === value ? "active" : ""} aria-pressed={settings.footer.position === value} disabled={!loadedFooter} onClick={() => setSettings((current) => ({ ...current, footer: { ...current.footer, position: value } }))}>{label}</button>)}
+                </div>
+                <p className="ie-muted">The footer keeps its aspect ratio and is centered over the image.</p>
+              </div>
+            ) : tab === "watermark" ? (
               <div className="ie-controls">
                 <label className="ie-toggle"><input type="checkbox" checked={settings.watermark.enabled} onChange={(event) => updateWatermark("enabled", event.target.checked)} /> Enable watermark</label>
                 <div className="ie-inline-options">

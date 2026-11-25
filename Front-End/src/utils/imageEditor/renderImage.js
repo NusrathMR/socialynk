@@ -110,7 +110,29 @@ function drawWatermark(ctx, width, height, settings, logoImage) {
   ctx.restore()
 }
 
-export function drawEditedImage(canvas, sourceImage, settings, logoImage = null, maxDimension = 0, background = null) {
+function drawFooter(ctx, width, height, footerImage, position) {
+  if (!footerImage?.naturalWidth || !footerImage?.naturalHeight) return
+  const margin = Math.min(Math.max(12, Math.min(width, height) * 0.04), Math.min(width, height) * 0.08)
+  const maxWidth = Math.max(1, width - margin * 2)
+  const maxHeight = Math.max(1, height * 0.22)
+  const scale = Math.min(maxWidth / footerImage.naturalWidth, maxHeight / footerImage.naturalHeight)
+  const footerWidth = footerImage.naturalWidth * scale
+  const footerHeight = footerImage.naturalHeight * scale
+  const x = (width - footerWidth) / 2
+  const y = position === "top"
+    ? margin
+    : position === "middle"
+      ? (height - footerHeight) / 2
+      : height - margin - footerHeight
+
+  ctx.save()
+  ctx.globalAlpha = 1
+  ctx.filter = "none"
+  ctx.drawImage(footerImage, x, y, footerWidth, footerHeight)
+  ctx.restore()
+}
+
+export function drawEditedImage(canvas, sourceImage, settings, logoImage = null, maxDimension = 0, background = null, footerImage = null) {
   const naturalWidth = sourceImage.naturalWidth || sourceImage.width
   const naturalHeight = sourceImage.naturalHeight || sourceImage.height
   const scale = maxDimension ? Math.min(1, maxDimension / Math.max(naturalWidth, naturalHeight)) : 1
@@ -140,6 +162,7 @@ export function drawEditedImage(canvas, sourceImage, settings, logoImage = null,
     ctx.putImageData(pixels, 0, 0)
   }
   drawWatermark(ctx, width, height, settings, logoImage)
+  drawFooter(ctx, width, height, footerImage, settings.footer?.position || "bottom")
   return { width, height }
 }
 
