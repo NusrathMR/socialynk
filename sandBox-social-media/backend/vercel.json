@@ -1,0 +1,9 @@
+{
+  "$schema": "https://vercel.sh",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/src/server.js"
+    }
+  ]
+}
