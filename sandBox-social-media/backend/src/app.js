@@ -15,11 +15,13 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/posts', postRoutes);
+// Accept the shorter path used by clients that omit the /api prefix.
+app.use('/posts', postRoutes);
 
-// 404 Handler
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: 'Endpoint not found.' });
-});
+// // 404 Handler
+// app.use((req, res) => {
+//   res.status(404).json({ success: false, message: 'Endpoint not found.' });
+// });
 
 // Global Error Handler
 app.use((error, req, res, next) => {
