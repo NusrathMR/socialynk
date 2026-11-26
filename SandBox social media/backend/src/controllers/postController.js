@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
-const Post = require('../models/Post');
+import mongoose from 'mongoose';
+import Post from '../models/Post.js';
 
 const PLATFORMS = ['instagram', 'facebook', 'linkedin', 'twitter', 'tiktok', 'youtube'];
 
-function normalizeMedia(body) {
+const normalizeMedia = (body) => {
   const rawMedia = [
     ...(Array.isArray(body.media) ? body.media : body.media ? [body.media] : []),
     ...(Array.isArray(body.images) ? body.images : body.images ? [body.images] : []),
@@ -12,18 +12,27 @@ function normalizeMedia(body) {
   const aliases = [body.imageUrl, body.mediaUrl, body.thumbnailUrl].filter(Boolean);
   const entries = [...rawMedia, ...aliases];
   const media = [];
+
   for (const entry of entries) {
     const item = typeof entry === 'string' ? { url: entry } : entry;
     const url = item?.url || item?.imageUrl || item?.mediaUrl || item?.src;
     if (typeof url !== 'string' || !url.trim()) continue;
+
     let parsed;
-    try { parsed = new URL(url); } catch { return { error: 'Media URLs must be absolute HTTP or HTTPS URLs.' }; }
+    try {
+      parsed = new URL(url);
+    } catch {
+      return { error: 'Media URLs must be absolute HTTP or HTTPS URLs.' };
+    }
+
     if (!['http:', 'https:'].includes(parsed.protocol)) {
       return { error: 'Media URLs must use HTTP or HTTPS.' };
     }
-    if (!media.some((existing) => existing.url === url.trim())) {
+
+    const trimmedUrl = url.trim();
+    if (!media.some((existing) => existing.url === trimmedUrl)) {
       media.push({
-        url: url.trim(),
+        url: trimmedUrl,
         type: item.type || item.mediaType || body.mediaType || '',
         alt: item.alt || item.altText || '',
         width: Number.isFinite(Number(item.width)) && item.width !== undefined ? Number(item.width) : undefined,
@@ -34,15 +43,17 @@ function normalizeMedia(body) {
       });
     }
   }
+
   if (media.length > 20) return { error: 'A post can contain at most 20 media items.' };
   return { media };
-}
+};
 
-async function createPost(req, res, next) {
+export const createPost = async (req, res, next) => {
   const { platform, text, authorName, sourcePostId } = req.body || {};
   const missingFields = ['platform', 'authorName', 'sourcePostId'].filter(
     (field) => typeof req.body?.[field] !== 'string' || !req.body[field].trim(),
   );
+
   if (req.body?.text !== undefined && typeof req.body.text !== 'string') {
     return res.status(400).json({ success: false, message: 'text must be a string when provided.' });
   }
@@ -124,9 +135,9 @@ async function createPost(req, res, next) {
     }
     return next(error);
   }
-}
+};
 
-async function getPosts(req, res, next) {
+export const getPosts = async (req, res, next) => {
   const page = Number(req.query.page ?? 1);
   const limit = Number(req.query.limit ?? 12);
   const requestedPlatform = req.query.platform === undefined
@@ -174,9 +185,9 @@ async function getPosts(req, res, next) {
   } catch (error) {
     return next(error);
   }
-}
+};
 
-async function getPostById(req, res, next) {
+export const getPostById = async (req, res, next) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
     return res.status(400).json({ success: false, message: 'Post id must be a valid MongoDB ObjectId.' });
   }
@@ -189,6 +200,6 @@ async function getPostById(req, res, next) {
   } catch (error) {
     return next(error);
   }
-}
+};
 
-module.exports = { createPost, getPosts, getPostById };
+export default { createPost, getPosts, getPostById };

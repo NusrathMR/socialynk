@@ -1,6 +1,6 @@
-const { timingSafeEqual } = require('node:crypto');
+import { timingSafeEqual } from 'node:crypto';
 
-function apiKeyAuth(req, res, next) {
+const apiKeyAuth = (req, res, next) => {
   const expectedKey = process.env.FAKE_SOCIAL_API_KEY;
   const providedKey = req.get('x-api-key');
 
@@ -24,6 +24,6 @@ function apiKeyAuth(req, res, next) {
   }
 
   return next();
-}
+};
 
-module.exports = apiKeyAuth;
+export default apiKeyAuth;

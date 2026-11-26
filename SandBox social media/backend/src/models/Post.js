@@ -1,6 +1,8 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const mediaSchema = new mongoose.Schema(
+const { Schema, model } = mongoose;
+
+const mediaSchema = new Schema(
   {
     url: { type: String, trim: true, maxlength: 4096 },
     type: { type: String, trim: true, maxlength: 100 },
@@ -14,7 +16,7 @@ const mediaSchema = new mongoose.Schema(
   { _id: false },
 );
 
-const postSchema = new mongoose.Schema(
+const postSchema = new Schema(
   {
     platform: {
       type: String,
@@ -64,4 +66,6 @@ const postSchema = new mongoose.Schema(
 
 postSchema.index({ platform: 1, sourcePostId: 1 }, { unique: true });
 
-module.exports = mongoose.model('Post', postSchema);
+const Post = model('Post', postSchema);
+
+export default Post;
